@@ -10,14 +10,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "여기에_API_KEY",
-  authDomain: "여기에_AUTH_DOMAIN",
-  projectId: "여기에_PROJECT_ID",
-  storageBucket: "여기에_STORAGE",
-  messagingSenderId: "여기에_SENDER_ID",
-  appId: "여기에_APP_ID"
+  apiKey: "AIzaSy.....",
+  authDomain: "postit-wall.firebaseapp.com",
+  projectId: "postit-wall",
+  storageBucket: "postit-wall.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -110,4 +109,5 @@ saveBtn.onclick = async () => {
 
 /* 시작 */
 load();
+
 
