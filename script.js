@@ -14,13 +14,25 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const SIZE = 160;
 
-// 포스트잇 면적이 다른 포스트잇과 겹치는지 체크
+// 보드의 실제 높이를 포스트잇 위치에 맞춰 강제로 늘리는 함수
+function updateBoardHeight() {
+    const postits = document.querySelectorAll('.postit');
+    let maxBottom = window.innerHeight;
+
+    postits.forEach(p => {
+        const bottom = parseFloat(p.style.top) + SIZE + 100; // 아래 여백 100px 추가
+        if (bottom > maxBottom) maxBottom = bottom;
+    });
+
+    const board = document.getElementById('board');
+    board.style.height = maxBottom + "px"; // 보드 높이를 갱신해서 배경을 채움
+}
+
 function isOverlapping(x, y) {
     const postits = document.querySelectorAll('.postit');
     for (let p of postits) {
         const px = parseFloat(p.style.left);
         const py = parseFloat(p.style.top);
-        // 사각형 충돌 판정 (마진 15px)
         if (!(x + SIZE + 15 < px || x > px + SIZE + 15 || y + SIZE + 15 < py || y > py + SIZE + 15)) {
             return true;
         }
@@ -28,11 +40,10 @@ function isOverlapping(x, y) {
     return false;
 }
 
-// 왼쪽 위부터 스캔하며 빈 자리 찾기
 function findSpot() {
     const winW = window.innerWidth;
-    for (let y = 20; y < 10000; y += 30) {
-        for (let x = 10; x < winW - SIZE - 10; x += 30) {
+    for (let y = 20; y < 10000; y += 40) {
+        for (let x = 10; x < winW - SIZE - 10; x += 40) {
             if (!isOverlapping(x, y)) return { x, y };
         }
     }
@@ -55,13 +66,16 @@ function render(data, id) {
     trash.className = 'trash'; trash.innerHTML = '🗑️';
     trash.onclick = async (e) => {
         e.stopPropagation();
-        if (prompt("비밀번호") === data.password || prompt("관리자") === "87524") {
+        if (prompt("비번") === data.password || prompt("관리자") === "87524") {
             await deleteDoc(doc(db, "notes", id));
             el.remove();
+            updateBoardHeight(); // 삭제 후에도 높이 재계산
         }
     };
     el.appendChild(trash);
     board.appendChild(el);
+    
+    updateBoardHeight(); // 포스트잇이 추가될 때마다 보드 높이 확장
 }
 
 async function load() {
@@ -75,7 +89,7 @@ document.getElementById('modal').onclick = (e) => { if(e.target.id === 'modal') 
 document.getElementById('savePostit').onclick = async () => {
     const text = document.getElementById('textInput').value.trim();
     const password = document.getElementById('passwordInput').value;
-    if(!text || password.length < 4) return alert("내용과 비번 4자리 확인!");
+    if(!text || password.length < 4) return alert("비번 4자리 확인!");
 
     const pos = findSpot();
     const docData = {
