@@ -2,19 +2,21 @@
 
 html, body {
   margin: 0; padding: 0;
-  width: 100%; min-height: 100%;
+  width: 100%;
+  /* min-height 대신 height를 auto로 두어 내용에 따라 늘어나게 합니다 */
+  min-height: 100vh; 
   background-color: #c69c6d;
+  /* 배경 이미지를 body에 직접 설정하여 끊김 없게 만듭니다 */
+  background-image: url("images/cork.jpg");
+  background-repeat: repeat;
+  background-attachment: scroll; /* 스크롤을 내리면 이미지도 같이 올라가게 설정 */
 }
 
 #board {
-  position: relative; /* 포스트잇 absolute 배치의 기준 */
+  position: relative;
   width: 100%;
+  /* 내부 포스트잇들이 위치할 수 있도록 최소 높이 확보 */
   min-height: 100vh;
-  /* 배경을 화면에 고정(fixed)하지 않고 보드와 함께 움직이도록 설정 */
-  background-image: url("images/cork.jpg");
-  background-repeat: repeat;
-  background-attachment: scroll; /* 이 설정이 배경을 같이 움직이게 합니다 */
-  background-size: auto;
 }
 
 .postit {
@@ -46,3 +48,4 @@ html, body {
 .controls { display: flex; gap: 10px; margin-bottom: 10px; }
 #savePostit { width: 100%; padding: 15px; background: #333; color: #fff; border: none; cursor: pointer; }
 .trash { position: absolute; top: 5px; right: 5px; cursor: pointer; }
+
