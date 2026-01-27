@@ -13,29 +13,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const SIZE = 160;
-const MARGIN = 20;
 
-// 면적 겹침 체크 함수
-function checkOverlap(x, y) {
+// 면적 겹침 체크 (충돌 판정)
+function isOccupied(x, y) {
     const postits = document.querySelectorAll('.postit');
     for (let p of postits) {
         const px = parseFloat(p.style.left);
         const py = parseFloat(p.style.top);
-        // AABB 충돌 판정 알고리즘
-        if (!(x + SIZE + MARGIN < px || x > px + SIZE + MARGIN || y + SIZE + MARGIN < py || y > py + SIZE + MARGIN)) {
+        // 사각형 면적 충돌 알고리즘
+        if (!(x + SIZE + 15 < px || x > px + SIZE + 15 || y + SIZE + 15 < py || y > py + SIZE + 15)) {
             return true;
         }
     }
     return false;
 }
 
-// 최적의 빈자리 탐색 로직
+// 빈 공간 검색
 function findSpot() {
     const winW = window.innerWidth;
-    // 세로로 무한히 스캔 (배경이 따라오므로 안전)
-    for (let y = 30; y < 20000; y += 40) {
-        for (let x = 20; x < winW - SIZE - 20; x += 40) {
-            if (!checkOverlap(x, y)) return { x, y };
+    for (let y = 30; y < 10000; y += 40) {
+        for (let x = 15; x < winW - SIZE - 15; x += 40) {
+            if (!isOccupied(x, y)) return { x, y };
         }
     }
     return { x: 30, y: 30 };
@@ -47,22 +45,21 @@ function render(data, id) {
     const el = document.createElement('div');
     el.className = 'postit';
     el.id = id;
-    
-    // DB 데이터 반영
     el.style.left = `${data.x}px`;
     el.style.top = `${data.y}px`;
     el.style.backgroundColor = data.color;
-    // 사용자가 선택한 글꼴 적용
+    
+    // 최종 글꼴 적용 로직
     el.style.fontFamily = data.font || "'Nanum Pen Script', cursive";
+    
     el.style.transform = `rotate(${data.rotate || 0}deg)`;
     el.innerText = data.text;
 
-    // 쓰레기통 아이콘 생성
     const trash = document.createElement('span');
     trash.className = 'trash'; trash.innerHTML = '🗑️';
     trash.onclick = async (e) => {
         e.stopPropagation();
-        const pw = prompt("삭제 비밀번호를 입력하세요.");
+        const pw = prompt("비밀번호를 입력하세요.");
         if (pw === data.password || pw === "87524") {
             await deleteDoc(doc(db, "notes", id));
             el.remove();
@@ -73,35 +70,33 @@ function render(data, id) {
 }
 
 async function load() {
-    const q = query(collection(db, "notes"), orderBy("createdAt", "asc"));
-    const snap = await getDocs(q);
+    const snap = await getDocs(query(collection(db, "notes"), orderBy("createdAt", "asc")));
     snap.forEach(d => render(d.data(), d.id));
 }
 
-// UI 컨트롤러
-const modal = document.getElementById('modal');
-document.getElementById('addPostitBtn').onclick = () => modal.style.display = 'block';
-modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+// 이벤트 초기화
+document.getElementById('addPostitBtn').onclick = () => document.getElementById('modal').style.display = 'block';
+document.getElementById('modal').onclick = (e) => { if(e.target.id === 'modal') e.target.style.display = 'none'; };
 
 document.getElementById('savePostit').onclick = async () => {
     const text = document.getElementById('textInput').value.trim();
     const password = document.getElementById('passwordInput').value;
-    const font = document.getElementById('fontInput').value; // 폰트 값
+    const font = document.getElementById('fontInput').value; // 글꼴 값 획득
     const color = document.getElementById('colorInput').value;
 
-    if(!text || password.length < 4) return alert("내용과 비밀번호 4자리를 입력해주세요.");
+    if(!text || password.length < 4) return alert("내용과 비번 4자리를 확인하세요!");
 
     const pos = findSpot();
     const docData = {
         text, password, font, color,
         x: pos.x, y: pos.y,
-        rotate: (Math.random() * 6 - 3), // 약간의 회전으로 자연스럽게
+        rotate: Math.random() * 8 - 4,
         createdAt: Date.now()
     };
     
     const docRef = await addDoc(collection(db, "notes"), docData);
     render(docData, docRef.id);
-    modal.style.display = 'none';
+    document.getElementById('modal').style.display = 'none';
     document.getElementById('textInput').value = '';
     document.getElementById('passwordInput').value = '';
 };
