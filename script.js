@@ -15,7 +15,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
 
-// 1. 배경 높이 자동 조절 함수
 function updateBoardHeight() {
   const board = document.getElementById("board");
   const postits = document.querySelectorAll(".postit");
@@ -24,26 +23,20 @@ function updateBoardHeight() {
     const bottom = parseFloat(p.style.top) + parseFloat(p.style.height || 200);
     if (bottom > maxBottom) maxBottom = bottom;
   });
-  board.style.height = (maxBottom + 500) + "px"; // 넉넉히 500px 여유
+  board.style.height = (maxBottom + 500) + "px";
 }
 
-// 2. 겹침 감지 알고리즘 (충돌 체크)
 function isOverlapping(newX, newY, newSize, existingPostits) {
   for (let p of existingPostits) {
     const ex = parseFloat(p.style.left);
     const ey = parseFloat(p.style.top);
     const es = parseFloat(p.style.width);
-    
-    // 사각형 영역끼리 겹치는지 비교 (간격 여유 15px 포함)
     const margin = 15;
-    if (!(newX + newSize + margin < ex || 
-          newX > ex + es + margin || 
-          newY + newSize + margin < ey || 
-          newY > ey + es + margin)) {
-      return true; // 겹침!
+    if (!(newX + newSize + margin < ex || newX > ex + es + margin || newY + newSize + margin < ey || newY > ey + es + margin)) {
+      return true;
     }
   }
-  return false; // 안 겹침!
+  return false;
 }
 
 function createPostit(data, id) {
@@ -95,34 +88,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("passwordInput").value;
     if (!text || password.length !== 4) return alert("글과 4자리 비밀번호를 입력하세요!");
 
-    const size = 180 + Math.max(0, text.length - 40) * 2;
+    // 글씨가 커졌으므로 포스트잇 기본 사이즈도 약간 키움
+    const size = 200 + Math.max(0, text.length - 30) * 3;
     const existing = document.querySelectorAll(".postit");
-    let x, y, attempts = 0;
-    let found = false;
+    let x, y, attempts = 0, found = false;
 
-    // 빈 공간 찾기 루프 (최대 150번 시도)
-    while (attempts < 150) {
+    while (attempts < 200) {
       const currentH = document.getElementById("board").scrollHeight;
       x = Math.random() * (window.innerWidth - size - 40) + 20;
       y = Math.random() * (currentH - size - 40) + 20;
-      
-      if (!isOverlapping(x, y, size, existing)) {
-        found = true;
-        break;
-      }
+      if (!isOverlapping(x, y, size, existing)) { found = true; break; }
       attempts++;
     }
-
-    // 자리가 없으면 그냥 맨 아래 빈 공간으로 배치
-    if (!found) {
-      y = document.getElementById("board").scrollHeight + 10;
-    }
+    if (!found) y = document.getElementById("board").scrollHeight + 20;
 
     await addDoc(collection(db, "notes"), {
       text, color: document.getElementById("colorInput").value,
       font: document.getElementById("fontInput").value,
       password, size, x, y, 
-      rotate: Math.random() * 20 - 10, 
+      rotate: Math.random() * 16 - 8, 
       createdAt: Date.now()
     });
 
