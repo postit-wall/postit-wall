@@ -14,7 +14,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
-const FIXED_SIZE = 200; // 초기 알려드렸던 표준 크기 200px
+const FIXED_SIZE = 160; // 초기 알려드렸던 표준 크기 200px
 
 function updateBoardDimensions() {
   const postits = document.querySelectorAll(".postit");
@@ -138,3 +138,4 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   load();
 });
+
