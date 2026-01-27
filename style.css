@@ -9,7 +9,6 @@ html, body {
 #board {
   position: relative;
   width: 100%; min-height: 100vh;
-  /* 배경 고정으로 모바일 가로 확장 시에도 배경이 끊기지 않음 */
   background-image: url("images/cork.jpg");
   background-repeat: repeat;
   background-attachment: fixed; 
@@ -20,38 +19,35 @@ html, body {
   position: fixed; right: 20px; bottom: 20px; z-index: 100;
   padding: 12px 24px; border: none; border-radius: 50px;
   background: #333; color: white; font-size: 16px; font-weight: bold; cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
-/* 모달 스타일 */
 #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; }
 .modal-box {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px;
 }
 .modal-box textarea {
-  width: 100%; height: 250px; margin-bottom: 15px; padding: 12px;
+  width: 100%; height: 200px; margin-bottom: 15px; padding: 12px;
   font-size: 18px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 10px; resize: none;
 }
 .controls { display: flex; gap: 8px; margin-bottom: 15px; }
 .controls input, .controls select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
 #savePostit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; }
 
-/* 포스트잇: 처음 알려드린 크기 느낌으로 복구 */
+/* 포스트잇: 정확히 160px 고정 */
 .postit {
   position: absolute;
-  padding: 20px;
+  width: 160px; height: 160px; /* 크기 160 고정 */
+  padding: 15px;
   box-shadow: 2px 5px 10px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: flex-start; /* 글자가 상단부터 적히도록 */
-  justify-content: flex-start;
+  display: block;
   text-align: left;
   line-height: 1.4;
-  font-size: 18px; /* 초기 적당한 글씨 크기 */
+  font-size: 16px; /* 크기에 맞춘 적절한 폰트 크기 */
   word-wrap: break-word;
   overflow: hidden;
   box-sizing: border-box;
 }
 
-.trash { position: absolute; top: 5px; right: 10px; cursor: pointer; display: none; font-size: 14px; }
+.trash { position: absolute; top: 5px; right: 8px; cursor: pointer; display: none; font-size: 12px; }
 .postit:hover .trash { display: block; }
