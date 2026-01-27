@@ -1,46 +1,45 @@
 @import url("https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap");
 
 html, body {
-  margin: 0; padding: 0; width: 100%; min-height: 100%;
-  font-family: 'Pretendard', sans-serif;
+  margin: 0; padding: 0;
+  width: 100%; min-height: 100%;
   background-color: #c69c6d;
-  overflow-x: hidden; /* 가로 스크롤 방지 */
 }
 
 #board {
-  position: relative;
-  width: 100vw; min-height: 100vh;
+  position: relative; /* 중요: 모든 포스트잇 좌표의 절대 기준점 */
+  width: 100%;
+  min-height: 100vh;
+  /* 배경 고정: 스크롤해도 배경은 가만히 있고 포스트잇만 움직여 배경 끊김 방지 */
   background-image: url("images/cork.jpg");
   background-repeat: repeat;
-  background-attachment: fixed;
+  background-attachment: fixed; 
   background-size: auto;
 }
 
-#addPostitBtn {
-  position: fixed; right: 20px; bottom: 20px; z-index: 100;
-  padding: 12px 24px; border: none; border-radius: 50px;
-  background: #333; color: white; font-size: 16px; font-weight: bold; cursor: pointer;
-}
-
 .postit {
-  position: absolute;
-  width: 160px !important; height: 160px !important; /* 크기 절대 고정 */
+  position: absolute; /* #board의 (0,0) 위치를 기준으로 박제됨 */
+  width: 160px !important;
+  height: 160px !important;
   padding: 15px;
-  box-shadow: 2px 5px 10px rgba(0,0,0,0.3);
+  box-shadow: 3px 6px 10px rgba(0,0,0,0.4);
   text-align: left;
   line-height: 1.4;
   font-size: 16px;
   word-wrap: break-word;
   overflow: hidden;
   box-sizing: border-box;
+  /* 스크롤 시 잔상 방지 */
+  backface-visibility: hidden;
 }
 
-/* 모달 스타일 */
+/* 쓰레기통 아이콘 */
+.trash { position: absolute; top: 5px; right: 8px; cursor: pointer; display: none; }
+.postit:hover .trash { display: block; }
+
+/* 모달 및 버튼 (생략 금지) */
+#addPostitBtn { position: fixed; right: 20px; bottom: 20px; z-index: 100; padding: 12px 24px; border: none; border-radius: 50px; background: #333; color: white; font-weight: bold; cursor: pointer; }
 #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; }
 .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; }
 .modal-box textarea { width: 100%; height: 200px; margin-bottom: 15px; padding: 12px; font-size: 18px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 10px; resize: none; }
-.controls { display: flex; gap: 8px; margin-bottom: 15px; }
-.controls input, .controls select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
 #savePostit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
-.trash { position: absolute; top: 5px; right: 8px; cursor: pointer; display: none; }
-.postit:hover .trash { display: block; }
