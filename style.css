@@ -1,46 +1,48 @@
 @import url("https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap");
 
 html, body {
-  margin: 0; padding: 0; width: 100%; min-height: 100%;
-  font-family: 'Pretendard', sans-serif;
+  margin: 0; padding: 0;
+  width: 100%; min-height: 100%;
   background-color: #c69c6d;
-  overflow-x: hidden; /* 가로 스크롤 방지 */
 }
 
 #board {
-  position: relative;
-  width: 100vw; min-height: 100vh;
+  position: relative; /* 포스트잇 absolute 배치의 기준 */
+  width: 100%;
+  min-height: 100vh;
+  /* 배경을 화면에 고정(fixed)하지 않고 보드와 함께 움직이도록 설정 */
   background-image: url("images/cork.jpg");
   background-repeat: repeat;
-  background-attachment: fixed;
+  background-attachment: scroll; /* 이 설정이 배경을 같이 움직이게 합니다 */
   background-size: auto;
+}
+
+.postit {
+  position: absolute; /* 보드의 특정 좌표에 박제 */
+  width: 160px !important;
+  height: 160px !important;
+  padding: 15px;
+  box-shadow: 3px 5px 10px rgba(0,0,0,0.3);
+  box-sizing: border-box;
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 20px;
+  word-break: break-all;
+  overflow: hidden;
 }
 
 #addPostitBtn {
   position: fixed; right: 20px; bottom: 20px; z-index: 100;
-  padding: 12px 24px; border: none; border-radius: 50px;
-  background: #333; color: white; font-size: 16px; font-weight: bold; cursor: pointer;
+  padding: 15px 25px; border-radius: 50px; background: #333; color: #fff; border: none; cursor: pointer;
 }
 
-.postit {
-  position: absolute;
-  width: 160px !important; height: 160px !important; /* 크기 절대 고정 */
-  padding: 15px;
-  box-shadow: 2px 5px 10px rgba(0,0,0,0.3);
-  text-align: left;
-  line-height: 1.4;
-  font-size: 16px;
-  word-wrap: break-word;
-  overflow: hidden;
-  box-sizing: border-box;
+#modal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
 }
-
-/* 모달 스타일 */
-#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; }
-.modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; }
-.modal-box textarea { width: 100%; height: 200px; margin-bottom: 15px; padding: 12px; font-size: 18px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 10px; resize: none; }
-.controls { display: flex; gap: 8px; margin-bottom: 15px; }
-.controls input, .controls select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
-#savePostit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
-.trash { position: absolute; top: 5px; right: 8px; cursor: pointer; display: none; }
-.postit:hover .trash { display: block; }
+.modal-box {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: #fff; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px;
+}
+.modal-box textarea { width: 100%; height: 150px; margin-bottom: 10px; }
+.controls { display: flex; gap: 10px; margin-bottom: 10px; }
+#savePostit { width: 100%; padding: 15px; background: #333; color: #fff; border: none; cursor: pointer; }
+.trash { position: absolute; top: 5px; right: 5px; cursor: pointer; }
