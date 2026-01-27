@@ -2,19 +2,17 @@
 
 html, body {
   margin: 0; padding: 0; width: 100%;
-  min-height: 100%; /* 절대 height: 100% 쓰지 마세요 */
+  min-height: 100%;
   font-family: Pretendard, sans-serif;
   background-color: #c69c6d;
 }
 
-/*  */
 #board {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  /* 배경 이미지 무한 반복 설정 */
   background-image: url("images/cork.jpg");
-  background-repeat: repeat !important; 
+  background-repeat: repeat !important;
   background-size: auto;
   overflow: visible;
 }
@@ -24,21 +22,16 @@ html, body {
   right: 20px; bottom: 20px;
   z-index: 100;
   padding: 15px 30px;
-  border: none;
-  border-radius: 50px;
-  background: #333;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
+  border: none; border-radius: 50px;
+  background: #333; color: white;
+  font-size: 18px; font-weight: bold; cursor: pointer;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
-/* --- 글쓰기 창(모달) 크기 대폭 확대 --- */
+/* 모달 및 입력창 크기 */
 #modal {
   display: none;
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.7);
   z-index: 1000;
 }
@@ -47,44 +40,35 @@ html, body {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  width: 500px; /* 창 너비를 500px로 크게 조절 */
-  max-width: 90%;
+  background: white; padding: 40px; border-radius: 20px;
+  width: 550px; max-width: 90%;
 }
 
 .modal-box textarea { 
-  width: 100%; 
-  height: 250px; /* 글 쓰는 공간을 확 늘렸습니다 */
-  margin-bottom: 20px; 
-  padding: 15px; 
-  font-size: 18px;
+  width: 100%; height: 300px; 
+  margin-bottom: 20px; padding: 15px; 
+  font-size: 20px; /* 입력창 글씨도 크게 */
   box-sizing: border-box; 
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  resize: none;
+  border: 1px solid #ccc; border-radius: 10px; resize: none;
 }
 
 .controls { display: flex; gap: 10px; margin-bottom: 20px; }
 .controls input, .controls select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
+#savePostit { width: 100%; padding: 18px; background: #333; color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; }
 
-#savePostit { 
-  width: 100%; padding: 18px; 
-  background: #333; color: white; 
-  border: none; border-radius: 10px; 
-  font-size: 20px; font-weight: bold; cursor: pointer; 
-}
-
-/* 포스트잇 스타일 */
+/* --- 포스트잇 글씨 크기 및 상단 정렬 --- */
 .postit {
   position: absolute;
-  padding: 20px;
+  padding: 25px 20px;
   box-shadow: 3px 6px 12px rgba(0,0,0,0.3);
-  border-radius: 2px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  display: flex; align-items: center; justify-content: center; text-align: center;
+  display: block; 
+  text-align: left;
+  line-height: 1.5;
+  font-size: 22px; /* 포스트잇 글씨 크기를 대폭 키움 */
+  font-weight: 500;
+  overflow: hidden;
+  word-wrap: break-word;
 }
-.trash { position: absolute; top: 5px; right: 10px; cursor: pointer; display: none; }
+
+.trash { position: absolute; top: 5px; right: 10px; cursor: pointer; display: none; font-size: 16px; }
 .postit:hover .trash { display: block; }
