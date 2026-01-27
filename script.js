@@ -1,4 +1,4 @@
-/* Firebase */
+/* 1. Firebase 라이브러리 로드 - 주소 및 모듈 호환성 수정 */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import {
   getFirestore,
@@ -9,6 +9,7 @@ import {
   doc
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
+/* 2. Firebase 설정 */
 const firebaseConfig = {
   apiKey: "AIzaSyCtEtTKT_ay0KZoNw6kxiWt_RkI6L2UvKQ",
   authDomain: "postit-wall-7ba23.firebaseapp.com",
@@ -18,26 +19,19 @@ const firebaseConfig = {
   appId: "1:447459662497:web:73ebd7b62d08ca6f12aee0",
   measurementId: "G-22QZE2KBN3"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-/* DOM */
-const board = document.getElementById("board");
-const modal = document.getElementById("modal");
-const addBtn = document.getElementById("addPostitBtn");
-const saveBtn = document.getElementById("savePostit");
-
 const ADMIN_CODE = "87524";
 
-/* 유틸 */
+/* 3. 유틸리티 함수 */
 const rand = (min, max) => Math.random() * (max - min) + min;
 
-/* 모달 열기 */
-addBtn.onclick = () => modal.style.display = "block";
-modal.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
-
-/* 포스트잇 생성 */
+/* 4. 포스트잇 생성 함수 */
 function createPostit(data, id) {
+  const board = document.getElementById("board");
+  if (!board) return;
+
   const el = document.createElement("div");
   el.className = "postit";
   el.style.background = data.color;
@@ -58,7 +52,7 @@ function createPostit(data, id) {
     e.stopPropagation();
     const pw = prompt("비밀번호 입력");
     if (pw === data.password || pw === ADMIN_CODE) {
-      await deleteDoc(doc(db, "notes", id));
+      await deleteDoc(doc(db, "notes", id)); // 컬렉션 명 "notes"로 통일
       el.remove();
     } else {
       alert("비밀번호가 틀렸어요");
@@ -68,53 +62,83 @@ function createPostit(data, id) {
   board.appendChild(el);
 }
 
-/* 불러오기 */
+/* 5. 데이터 불러오기 함수 */
 async function load() {
+  const board = document.getElementById("board");
+  if (!board) return;
+  
   board.innerHTML = "";
-  const snap = await getDocs(collection(db, "notes"));
-  snap.forEach(d => createPostit(d.data(), d.id));
+  try {
+    const snap = await getDocs(collection(db, "notes"));
+    snap.forEach(d => createPostit(d.data(), d.id));
+  } catch (error) {
+    console.error("데이터 로딩 에러:", error);
+  }
 }
 
-/* 저장 */
-saveBtn.onclick = async () => {
-  const text = document.getElementById("textInput").value.trim();
-  const color = document.getElementById("colorInput").value;
-  const font = document.getElementById("fontInput").value;
-  const password = document.getElementById("passwordInput").value;
+/* 6. 이벤트 리스너 등록 (DOM이 모두 로드된 후 실행) */
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("modal");
+  const addBtn = document.getElementById("addPostitBtn");
+  const saveBtn = document.getElementById("savePostit");
 
-  if (!text || password.length !== 4) {
-    alert("글과 4자리 비밀번호 필요");
-    return;
+  // 모달 열기
+  if (addBtn) {
+    addBtn.onclick = () => {
+      modal.style.display = "block";
+    };
   }
 
-  const size = 160 + Math.max(0, text.length - 40) * 2;
-  const rect = board.getBoundingClientRect();
+  // 모달 닫기 (배경 클릭 시)
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    };
+  }
 
-  await addDoc(collection(db, "notes"), {
-    text,
-    color,
-    font,
-    password,
-    size,
-    x: rand(20, rect.width - size - 20),
-    y: rand(20, rect.height - size - 20),
-    rotate: rand(-10, 10),
-    createdAt: Date.now()
-  });
+  // 데이터 저장
+  if (saveBtn) {
+    saveBtn.onclick = async () => {
+      const text = document.getElementById("textInput").value.trim();
+      const color = document.getElementById("colorInput").value;
+      const font = document.getElementById("fontInput").value;
+      const password = document.getElementById("passwordInput").value;
 
-  modal.style.display = "none";
-  document.getElementById("textInput").value = "";
-  document.getElementById("passwordInput").value = "";
+      if (!text || password.length !== 4) {
+        alert("글과 4자리 비밀번호 필요");
+        return;
+      }
+
+      const size = 160 + Math.max(0, text.length - 40) * 2;
+      const boardRect = document.getElementById("board").getBoundingClientRect();
+
+      try {
+        await addDoc(collection(db, "notes"), {
+          text,
+          color,
+          font,
+          password,
+          size,
+          x: rand(20, boardRect.width - size - 20),
+          y: rand(20, boardRect.height - size - 20),
+          rotate: rand(-10, 10),
+          createdAt: Date.now()
+        });
+
+        modal.style.display = "none";
+        document.getElementById("textInput").value = "";
+        document.getElementById("passwordInput").value = "";
+        load();
+      } catch (error) {
+        console.error("저장 에러:", error);
+        alert("저장에 실패했습니다.");
+      }
+    };
+  }
+
+  // 초기 데이터 로드
   load();
-};
-
-/* 시작 */
-load();
-
-
-
-
-
+});
 
 
 
