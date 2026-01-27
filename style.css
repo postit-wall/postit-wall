@@ -11,8 +11,9 @@ html, body {
   width: 100%; min-height: 100vh;
   background-image: url("images/cork.jpg");
   background-repeat: repeat;
-  background-attachment: fixed; 
+  background-attachment: fixed;
   background-size: auto;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
 }
 
 #addPostitBtn {
@@ -21,33 +22,25 @@ html, body {
   background: #333; color: white; font-size: 16px; font-weight: bold; cursor: pointer;
 }
 
-#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; }
-.modal-box {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px;
-}
-.modal-box textarea {
-  width: 100%; height: 200px; margin-bottom: 15px; padding: 12px;
-  font-size: 18px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 10px; resize: none;
-}
-.controls { display: flex; gap: 8px; margin-bottom: 15px; }
-.controls input, .controls select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
-#savePostit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; }
-
-/* 포스트잇: 정확히 160px 고정 */
 .postit {
   position: absolute;
-  width: 160px; height: 160px; /* 크기 160 고정 */
+  width: 160px; height: 160px;
   padding: 15px;
   box-shadow: 2px 5px 10px rgba(0,0,0,0.3);
-  display: block;
   text-align: left;
   line-height: 1.4;
-  font-size: 16px; /* 크기에 맞춘 적절한 폰트 크기 */
+  font-size: 16px;
   word-wrap: break-word;
   overflow: hidden;
   box-sizing: border-box;
 }
 
-.trash { position: absolute; top: 5px; right: 8px; cursor: pointer; display: none; font-size: 12px; }
+/* 모달 및 컨트롤 */
+#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; }
+.modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; }
+.modal-box textarea { width: 100%; height: 200px; margin-bottom: 15px; padding: 12px; font-size: 18px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 10px; resize: none; }
+.controls { display: flex; gap: 8px; margin-bottom: 15px; }
+.controls input, .controls select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+#savePostit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+.trash { position: absolute; top: 5px; right: 8px; cursor: pointer; display: none; }
 .postit:hover .trash { display: block; }
