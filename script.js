@@ -15,56 +15,60 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
 const SIZE = 160;
-const MARGIN = 15; // 포스트잇 사이의 여유 공간
+const MARGIN = 10; // 포스트잇 간 최소 간격
 
-// 겹침 여부 확인 함수
-function isOverlapping(x, y, existing) {
-  for (let p of existing) {
-    const ex = parseFloat(p.style.left);
-    const ey = parseFloat(p.style.top);
-    // 충돌 박스 계산 (마진 포함)
-    if (!(x + SIZE + MARGIN < ex || x > ex + SIZE + MARGIN || 
-          y + SIZE + MARGIN < ey || y > ey + SIZE + MARGIN)) {
-      return true;
+// 현재 화면에 있는 모든 포스트잇의 실제 좌표 정보 가져오기
+function getExistingRects() {
+  return Array.from(document.querySelectorAll('.postit')).map(el => {
+    return {
+      left: parseFloat(el.style.left),
+      top: parseFloat(el.style.top),
+      right: parseFloat(el.style.left) + SIZE,
+      bottom: parseFloat(el.style.top) + SIZE
+    };
+  });
+}
+
+// 특정 좌표가 기존 것들과 겹치는지 체크
+function isOverlapping(x, y, existingRects) {
+  for (let rect of existingRects) {
+    if (!(x + SIZE + MARGIN < rect.left || 
+          x > rect.right + MARGIN || 
+          y + SIZE + MARGIN < rect.top || 
+          y > rect.bottom + MARGIN)) {
+      return true; // 겹침
     }
   }
   return false;
 }
 
-// 빈자리 찾기 로직 (그리드 스캔)
-function findEmptySpace(existing) {
+// 빈 공간을 찾을 때까지 화면 전체를 훑는 알고리즘
+function findSmartPosition() {
   const winW = window.innerWidth;
   const winH = window.innerHeight;
-  const step = 20; // 20픽셀 단위로 정밀하게 스캔
-
-  // 1단계: 현재 눈에 보이는 화면(Viewport) 안에서 위에서부터 아래로 수색
-  for (let y = 20; y < winH - SIZE; y += step) {
-    for (let x = 20; x < winW - SIZE; x += step) {
-      if (!isOverlapping(x, y, existing)) {
+  const existingRects = getExistingRects();
+  
+  // 1. 화면 위에서부터 촘촘하게(30px 단위) 검색
+  for (let y = 20; y < winH + 1000; y += 30) {
+    for (let x = 20; x < winW - SIZE - 20; x += 30) {
+      if (!isOverlapping(x, y, existingRects)) {
         return { x, y };
       }
     }
   }
-
-  // 2단계: 화면 안에 자리가 없으면 스크롤 아래 영역까지 확장해서 수색
-  const maxSearchH = Math.max(document.getElementById("board").scrollHeight, winH + 1000);
-  for (let y = winH; y < maxSearchH; y += step) {
-    for (let x = 20; x < winW - SIZE; x += step) {
-      if (!isOverlapping(x, y, existing)) {
-        return { x, y };
-      }
-    }
-  }
-
-  // 3단계: 정말 자리가 하나도 없으면 (이론상 거의 불가능) 아주 조금씩 겹치게 배치
-  return { x: Math.random() * (winW - SIZE), y: Math.random() * (winH - SIZE) };
+  // 자리가 전혀 없으면 맨 아래쪽 새로운 공간 생성
+  return { x: 20, y: document.getElementById("board").scrollHeight + 20 };
 }
 
 function createPostit(data, id) {
   const board = document.getElementById("board");
   const el = document.createElement("div");
   el.className = "postit";
-  el.style.cssText = `background:${data.color}; font-family:${data.font}; width:${SIZE}px; height:${SIZE}px; left:${data.x}px; top:${data.y}px; transform:rotate(${data.rotate}deg);`;
+  el.style.left = `${data.x}px`;
+  el.style.top = `${data.y}px`;
+  el.style.backgroundColor = data.color;
+  el.style.fontFamily = data.font;
+  el.style.transform = `rotate(${data.rotate || 0}deg)`;
   el.innerText = data.text;
   
   const trash = document.createElement("span");
@@ -98,14 +102,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("passwordInput").value;
     if (!text || password.length !== 4) return alert("4자리 비밀번호를 입력하세요!");
 
-    const existing = Array.from(document.querySelectorAll(".postit"));
-    const pos = findEmptySpace(existing); // 똑똑하게 빈자리 계산
+    // 위치를 먼저 계산한 뒤 저장
+    const pos = findSmartPosition();
 
     await addDoc(collection(db, "notes"), {
       text, color: document.getElementById("colorInput").value,
       font: document.getElementById("fontInput").value,
       password, x: pos.x, y: pos.y, 
-      rotate: Math.random() * 10 - 5, createdAt: Date.now()
+      rotate: Math.random() * 8 - 4, createdAt: Date.now()
     });
 
     modal.style.display = "none";
