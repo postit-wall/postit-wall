@@ -1,66 +1,132 @@
-// ... Firebase 설정 부분은 그대로 유지 ...
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyCtEtTKT_ay0KZoNw6kxiWt_RkI6L2UvKQ",
+  authDomain: "postit-wall-7ba23.firebaseapp.com",
+  projectId: "postit-wall-7ba23",
+  storageBucket: "postit-wall-7ba23.appspot.com",
+  messagingSenderId: "447459662497",
+  appId: "1:447459662497:web:73ebd7b62d08ca6f12aee0",
+  measurementId: "G-22QZE2KBN3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 const SIZE = 160;
 const MARGIN = 15;
+const ADMIN_CODE = "87524";
 
-// 면적 겹침 체크 (실제 보드 위의 x, y 좌표 대조)
-function checkOverlap(x, y) {
-  const postits = document.querySelectorAll('.postit');
-  for (let p of postits) {
-    const px = parseFloat(p.style.left);
-    const py = parseFloat(p.style.top);
-    // 노란 네모 면적이 1픽셀이라도 겹치는지 확인
-    if (!(x + SIZE + MARGIN < px || x > px + SIZE + MARGIN || 
-          y + SIZE + MARGIN < py || y > py + SIZE + MARGIN)) {
-      return true;
-    }
-  }
-  return false;
-}
+// 보드 크기를 포스트잇 위치에 맞춰 자동 확장
+function updateBoardSize() {
+    const postits = document.querySelectorAll('.postit');
+    let maxBottom = window.innerHeight;
+    let maxRight = window.innerWidth;
 
-// 빈 공간 찾기
-function getSafePosition() {
-  const winW = window.innerWidth;
-  // 현재 보드의 전체 높이를 기준으로 빈 공간 수색
-  const boardH = document.getElementById("board").scrollHeight || window.innerHeight;
-  
-  for (let y = 20; y < boardH + 2000; y += 30) {
-    for (let x = 20; x < winW - SIZE - 20; x += 30) {
-      if (!checkOverlap(x, y)) return { x, y };
-    }
-  }
-  return { x: 20, y: 20 };
-}
-
-function render(data, id) {
-  if (document.getElementById(id)) return;
-  const board = document.getElementById("board");
-  const el = document.createElement("div");
-  el.className = "postit";
-  el.id = id;
-  
-  // 보드 위의 절대 좌표에 박제
-  el.style.left = `${data.x}px`;
-  el.style.top = `${data.y}px`;
-  el.style.backgroundColor = data.color;
-  el.style.fontFamily = data.font;
-  el.style.transform = `rotate(${data.rotate || 0}deg)`;
-  el.innerText = data.text;
-  
-  // 삭제 버튼 로직 등 동일...
-  board.appendChild(el);
-}
-
-// 저장 시 로직
-document.getElementById("savePostit").onclick = async () => {
-    // ... 입력값 체크 ...
-    const pos = getSafePosition(); // 보드 전체 면적에서 빈틈 수색
-
-    const docRef = await addDoc(collection(db, "notes"), {
-      text, color: document.getElementById("colorInput").value,
-      font: document.getElementById("fontInput").value,
-      password, x: pos.x, y: pos.y, 
-      rotate: Math.random() * 8 - 4, createdAt: Date.now()
+    postits.forEach(p => {
+        const b = parseFloat(p.style.top) + SIZE + 100;
+        const r = parseFloat(p.style.left) + SIZE + 50;
+        if (b > maxBottom) maxBottom = b;
+        if (r > maxRight) maxRight = r;
     });
-    // ... 렌더링 및 모달 닫기 ...
-};
+
+    const board = document.getElementById("board");
+    board.style.height = maxBottom + "px";
+    board.style.width = maxRight + "px";
+}
+
+// 면적 기반 겹침 체크 알고리즘
+function isOccupied(x, y) {
+    const existing = document.querySelectorAll('.postit');
+    for (let p of existing) {
+        const px = parseFloat(p.style.left);
+        const py = parseFloat(p.style.top);
+        // 사각형 면적 충돌 판정
+        if (!(x + SIZE + MARGIN < px || x > px + SIZE + MARGIN || 
+              y + SIZE + MARGIN < py || y > py + SIZE + MARGIN)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 빈틈을 찾을 때까지 격자 수색
+function findEmptySpace() {
+    const winW = window.innerWidth;
+    const boardH = Math.max(document.getElementById("board").scrollHeight, 2000);
+    
+    for (let y = 20; y < boardH; y += 25) {
+        for (let x = 20; x < winW - SIZE - 20; x += 25) {
+            if (!isOccupied(x, y)) return { x, y };
+        }
+    }
+    return { x: 20, y: 20 };
+}
+
+function renderPostit(data, id) {
+    if (document.getElementById(id)) return;
+    const board = document.getElementById("board");
+    const el = document.createElement("div");
+    el.className = "postit";
+    el.id = id;
+    el.style.left = `${data.x}px`;
+    el.style.top = `${data.y}px`;
+    el.style.backgroundColor = data.color;
+    el.style.fontFamily = data.font;
+    el.style.transform = `rotate(${data.rotate || 0}deg)`;
+    el.innerText = data.text;
+    
+    const trash = document.createElement("span");
+    trash.className = "trash"; trash.textContent = "🗑️";
+    trash.onclick = async (e) => {
+        e.stopPropagation();
+        const pw = prompt("비밀번호를 입력하세요.");
+        if (pw === data.password || pw === ADMIN_CODE) {
+            await deleteDoc(doc(db, "notes", id));
+            el.remove();
+            updateBoardSize();
+        }
+    };
+    el.appendChild(trash);
+    board.appendChild(el);
+    updateBoardSize();
+}
+
+async function load() {
+    const q = query(collection(db, "notes"), orderBy("createdAt", "asc"));
+    const snap = await getDocs(q);
+    snap.forEach(d => renderPostit(d.data(), d.id));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("modal");
+    const addBtn = document.getElementById("addPostitBtn");
+    const saveBtn = document.getElementById("savePostit");
+
+    addBtn.onclick = () => { modal.style.display = "block"; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+
+    saveBtn.onclick = async () => {
+        const text = document.getElementById("textInput").value.trim();
+        const password = document.getElementById("passwordInput").value;
+        const color = document.getElementById("colorInput").value;
+        const font = document.getElementById("fontInput").value;
+
+        if (!text || password.length !== 4) return alert("내용과 비밀번호 4자리를 확인해주세요!");
+
+        const pos = findEmptySpace();
+
+        const docRef = await addDoc(collection(db, "notes"), {
+            text, color, font, password,
+            x: pos.x, y: pos.y, 
+            rotate: Math.random() * 6 - 3,
+            createdAt: Date.now()
+        });
+
+        renderPostit({text, color, font, password, x: pos.x, y: pos.y}, docRef.id);
+        modal.style.display = "none";
+        document.getElementById("textInput").value = "";
+    };
+
+    load();
+});
