@@ -14,30 +14,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
-const FIXED_SIZE = 160; // 초기 알려드렸던 표준 크기 200px
+const SIZE = 160; // 요청하신 160px 고정
 
 function updateBoardDimensions() {
   const postits = document.querySelectorAll(".postit");
   let maxBottom = window.innerHeight;
   let maxRight = window.innerWidth;
   postits.forEach(p => {
-    const bottom = parseFloat(p.style.top) + FIXED_SIZE;
-    const right = parseFloat(p.style.left) + FIXED_SIZE;
+    const bottom = parseFloat(p.style.top) + SIZE;
+    const right = parseFloat(p.style.left) + SIZE;
     if (bottom > maxBottom) maxBottom = bottom;
     if (right > maxRight) maxRight = right;
   });
   const board = document.getElementById("board");
   board.style.height = (maxBottom + 100) + "px";
-  board.style.width = (maxRight > window.innerWidth ? maxRight + 50 : window.innerWidth) + "px";
+  board.style.width = (maxRight > window.innerWidth ? maxRight + 20 : window.innerWidth) + "px";
 }
 
-function isOverlapping(x, y, existingPostits) {
-  const margin = 10;
-  for (let p of existingPostits) {
-    const ex = parseFloat(p.style.left);
-    const ey = parseFloat(p.style.top);
-    if (!(x + FIXED_SIZE < ex - margin || x > ex + FIXED_SIZE + margin || y + FIXED_SIZE < ey - margin || y > ey + FIXED_SIZE + margin)) {
-      return true;
+// 훨씬 강력해진 겹침 판정 (기존 요소 전수 조사)
+function checkOverlap(newX, newY) {
+  const margin = 15; // 포스트잇 사이의 최소 벌어짐
+  const elements = document.querySelectorAll(".postit");
+  
+  for (let el of elements) {
+    const ex = parseFloat(el.style.left);
+    const ey = parseFloat(el.style.top);
+    
+    // 두 사각형이 겹치는지 확인하는 표준 공식
+    if (!(newX + SIZE + margin < ex || 
+          newX > ex + SIZE + margin || 
+          newY + SIZE + margin < ey || 
+          newY > ey + SIZE + margin)) {
+      return true; // 겹침 발생
     }
   }
   return false;
@@ -48,12 +56,9 @@ function createPostit(data, id) {
   const el = document.createElement("div");
   el.className = "postit";
   el.style.cssText = `
-    background: ${data.color};
-    font-family: ${data.font};
-    width: ${FIXED_SIZE}px;
-    height: ${FIXED_SIZE}px;
-    left: ${data.x}px;
-    top: ${data.y}px;
+    background: ${data.color}; font-family: ${data.font};
+    width: ${SIZE}px; height: ${SIZE}px;
+    left: ${data.x}px; top: ${data.y}px;
     transform: rotate(${data.rotate}deg);
   `;
   el.innerText = data.text;
@@ -62,8 +67,7 @@ function createPostit(data, id) {
   trash.className = "trash"; trash.textContent = "🗑️";
   trash.onclick = async (e) => {
     e.stopPropagation();
-    const pw = prompt("비밀번호");
-    if (pw === data.password || pw === ADMIN_CODE) {
+    if (prompt("비밀번호") === data.password || ADMIN_CODE) {
       await deleteDoc(doc(db, "notes", id));
       el.remove();
       updateBoardDimensions();
@@ -92,37 +96,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("passwordInput").value;
     if (!text || password.length !== 4) return alert("글귀와 4자리 비밀번호를 입력하세요!");
 
-    const existing = Array.from(document.querySelectorAll(".postit"));
     const winW = window.innerWidth;
     const winH = window.innerHeight;
-    
     let finalX, finalY, found = false;
 
-    // 현재 화면 안에서 먼저 빈틈 탐색 (1000번 시도)
-    for (let attempts = 0; attempts < 1000; attempts++) {
-      let x = Math.random() * (winW - FIXED_SIZE - 40) + 20;
-      let y = Math.random() * (winH - FIXED_SIZE - 100) + 20;
-      if (!isOverlapping(x, y, existing)) {
-        finalX = x; finalY = y; found = true; break;
+    // 현재 화면 안에서 2000번 시도하여 빈자리 수색
+    for (let attempts = 0; attempts < 2000; attempts++) {
+      let tx = Math.random() * (winW - SIZE - 40) + 20;
+      let ty = Math.random() * (winH - SIZE - 100) + 20;
+
+      if (!checkOverlap(tx, ty)) {
+        finalX = tx; finalY = ty; found = true; break;
       }
     }
 
-    // 화면이 꽉 찼으면 전체 보드 영역으로 확장 탐색
+    // 화면 내에 자리가 없을 경우에만 아래로 확장
     if (!found) {
-      const currentFullH = document.getElementById("board").scrollHeight;
-      for (let attempts = 0; attempts < 500; attempts++) {
-        let x = Math.random() * (winW - FIXED_SIZE - 40) + 20;
-        let y = Math.random() * (currentFullH + 200);
-        if (!isOverlapping(x, y, existing)) {
-          finalX = x; finalY = y; found = true; break;
+      const fullH = document.getElementById("board").scrollHeight;
+      for (let attempts = 0; attempts < 1000; attempts++) {
+        let tx = Math.random() * (winW - SIZE - 40) + 20;
+        let ty = Math.random() * (fullH + 200);
+        if (!checkOverlap(tx, ty)) {
+          finalX = tx; finalY = ty; found = true; break;
         }
       }
     }
 
-    // 최후의 수단: 화면 내 랜덤 강제 배치 (아래로 도망가지 않도록)
+    // [최종 방어] 화면 안에 겹쳐서라도 둠 (아래로 내려가는 것 방지)
     if (!found) {
-      finalX = Math.random() * (winW - FIXED_SIZE - 40) + 20;
-      finalY = Math.random() * (winH - FIXED_SIZE - 100) + 20;
+      finalX = Math.random() * (winW - SIZE - 40) + 20;
+      finalY = Math.random() * (winH - SIZE - 100) + 20;
     }
 
     await addDoc(collection(db, "notes"), {
@@ -138,4 +141,3 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   load();
 });
-
