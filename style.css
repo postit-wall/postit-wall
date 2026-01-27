@@ -4,50 +4,81 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  /* 절대 height: 100%를 쓰지 마세요. 내용에 따라 늘어나야 합니다. */
-  min-height: 100%; 
+  min-height: 100%; /* 고정 높이 제거 */
   font-family: Pretendard, sans-serif;
 }
 
 #board {
   position: relative;
   width: 100%;
-  /* 기본 화면 높이를 채우되, 포스트잇이 있으면 더 늘어남 */
   min-height: 100vh;
-  
-  /* 배경 설정: repeat를 명시해야 늘어난 부분도 이미지가 채워집니다. */
+  /* 배경 설정: 늘어난 부분도 코르크가 나오게 repeat를 명시합니다. */
   background-image: url("images/cork.jpg");
-  background-repeat: repeat; 
+  background-repeat: repeat !important; 
   background-position: top left;
-  background-attachment: scroll;
+  background-size: auto; /* cover 대신 auto를 써야 이미지가 반복될 때 자연스럽습니다 */
   background-color: #c69c6d;
-  
-  /* 이미지가 너무 커서 반복이 이상하면 아래 줄을 조절하세요 (기본은 auto) */
-  background-size: auto; 
-  
   overflow: visible;
 }
 
 #addPostitBtn {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: 20px; bottom: 20px;
   z-index: 100;
-  padding: 12px 18px;
+  padding: 15px 25px;
   border: none;
   border-radius: 30px;
   background: #333;
   color: white;
+  font-size: 16px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
+/* --- 모달 창 크기 조절 --- */
+#modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+}
+
+.modal-box {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  width: 450px; /* 기존 320px에서 450px로 확대 */
+  max-width: 90%;
+}
+
+.modal-box textarea { 
+  width: 100%; 
+  height: 200px; /* 입력창 높이 확대 */
+  margin-bottom: 15px; 
+  padding: 15px; 
+  font-size: 16px;
+  box-sizing: border-box; 
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: none;
+}
+
+.controls { display: flex; gap: 10px; margin-bottom: 20px; }
+.controls input, .controls select { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+#savePostit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
+
+/* 포스트잇 스타일 */
 .postit {
   position: absolute;
-  padding: 14px;
-  box-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+  padding: 20px;
+  box-shadow: 2px 4px 10px rgba(0,0,0,0.3);
   border-radius: 4px;
   white-space: pre-wrap;
   word-break: break-word;
 }
-/* 이하 모달 등 스타일 생략 (기존과 동일) */
+.trash { position: absolute; top: 5px; right: 10px; cursor: pointer; display: none; }
+.postit:hover .trash { display: block; }
