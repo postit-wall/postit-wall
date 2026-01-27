@@ -11,9 +11,14 @@ html, body {
 #board {
   position: relative;
   width: 100%;
-  min-height: 100vh; /* 기본은 화면 전체 */
-  background: url("images/cork.jpg") repeat, #c69c6d; /* repeat 필수 */
-  overflow: visible; /* 포스트잇이 밖으로 나가도 잘리지 않게 함 */
+  min-height: 100vh;
+  /* repeat을 명시하여 이미지가 아래로 계속 이어지게 합니다 */
+  background-image: url("images/cork.jpg");
+  background-repeat: repeat; 
+  background-color: #c69c6d;
+  /* 배경 사이즈를 cover로 하면 늘어날 때 이미지가 깨집니다. auto가 좋습니다. */
+  background-size: auto; 
+  overflow: visible;
 }
 
 #addPostitBtn {
@@ -53,4 +58,5 @@ html, body {
   transform: translate(-50%, -50%);
   background: white; padding: 20px; border-radius: 12px; width: 300px;
 }
+
 
