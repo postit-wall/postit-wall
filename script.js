@@ -71,7 +71,7 @@ function createPostit(data, id) {
 /* 불러오기 */
 async function load() {
   board.innerHTML = "";
-  const snap = await getDocs(collection(db, "postits"));
+  const snap = await getDocs(collection(db, "notes"));
   snap.forEach(d => createPostit(d.data(), d.id));
 }
 
@@ -90,7 +90,7 @@ saveBtn.onclick = async () => {
   const size = 160 + Math.max(0, text.length - 40) * 2;
   const rect = board.getBoundingClientRect();
 
-  await addDoc(collection(db, "postits"), {
+  await addDoc(collection(db, "notes"), {
     text,
     color,
     font,
@@ -110,3 +110,4 @@ saveBtn.onclick = async () => {
 
 /* 시작 */
 load();
+
