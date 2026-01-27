@@ -55,7 +55,6 @@ html, body {
 .controls input, .controls select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
 #savePostit { width: 100%; padding: 18px; background: #333; color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; }
 
-/* 포스트잇 내부 글씨 설정 */
 .postit {
   position: absolute;
   padding: 25px 20px;
@@ -63,9 +62,7 @@ html, body {
   display: block; 
   text-align: left;
   line-height: 1.4;
-  font-size: 24px; /* 글씨 크기 확대 */
-  font-weight: 500;
-  overflow: hidden;
+  font-size: 24px;
   word-wrap: break-word;
 }
 
@@ -73,4 +70,5 @@ html, body {
 .postit:hover .trash { display: block; }
 .trash { position: absolute; top: 5px; right: 10px; cursor: pointer; display: none; font-size: 16px; }
 .postit:hover .trash { display: block; }
+
 
