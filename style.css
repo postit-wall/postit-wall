@@ -4,20 +4,16 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  /* 높이를 고정(100%)하지 않고, 최소 높이만 지정해서 늘어나게 합니다 */
-  min-height: 100%; 
-  font-family: Pretendard, sans-serif;
-  /* 스크롤바가 필요할 때만 생기도록 설정 */
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: auto; /* 고정 높이 제거 */
+  min-height: 100%;
 }
 
 #board {
   position: relative;
   width: 100%;
-  min-height: 100vh;
-  /* 이미지 경로를 확인하세요. repeat을 넣어야 아래로 늘어날 때 배경이 이어집니다. */
-  background: url("images/cork.jpg") repeat, #c69c6d;
+  min-height: 100vh; /* 기본은 화면 전체 */
+  background: url("images/cork.jpg") repeat, #c69c6d; /* repeat 필수 */
+  overflow: visible; /* 포스트잇이 밖으로 나가도 잘리지 않게 함 */
 }
 
 #addPostitBtn {
@@ -57,3 +53,4 @@ html, body {
   transform: translate(-50%, -50%);
   background: white; padding: 20px; border-radius: 12px; width: 300px;
 }
+
