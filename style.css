@@ -1,31 +1,27 @@
 @import url("https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap");
 
 html, body {
-  margin: 0; padding: 0; width: 100%; min-height: 100%;
-  font-family: 'Pretendard', sans-serif;
+  margin: 0; padding: 0;
+  width: 100%; min-height: 100%;
   background-color: #c69c6d;
+  font-family: 'Pretendard', sans-serif;
 }
 
 #board {
   position: relative;
-  width: 100%; min-height: 100vh;
+  /* 가로 세로 꽉 채우고, 넘쳐도 배경이 끊기지 않게 설정 */
+  min-width: 100vw;
+  min-height: 100vh;
   background-image: url("images/cork.jpg");
   background-repeat: repeat;
-  background-attachment: fixed;
+  background-attachment: fixed; /* 배경을 화면에 고정시켜 끊김 방지 */
   background-size: auto;
+  overflow: visible;
 }
 
-#addPostitBtn {
-  position: fixed; right: 20px; bottom: 20px; z-index: 100;
-  padding: 12px 24px; border: none; border-radius: 50px;
-  background: #333; color: white; font-size: 16px; font-weight: bold; cursor: pointer;
-}
-
-/* 포스트잇 본체: 160px 절대 사수 */
 .postit {
   position: absolute;
-  width: 160px !important;
-  height: 160px !important;
+  width: 160px; height: 160px; /* 크기 160 고정 */
   padding: 15px;
   box-shadow: 3px 6px 10px rgba(0,0,0,0.4);
   text-align: left;
@@ -33,10 +29,11 @@ html, body {
   font-size: 16px;
   word-wrap: break-word;
   overflow: hidden;
-  box-sizing: border-box; /* 패딩이 크기에 영향을 주지 않도록 설정 */
+  box-sizing: border-box;
 }
 
-/* 모달 및 컨트롤 */
+/* 추가 버튼 & 모달 생략 (이전과 동일) */
+#addPostitBtn { position: fixed; right: 20px; bottom: 20px; z-index: 100; padding: 12px 24px; border: none; border-radius: 50px; background: #333; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
 #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; }
 .modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; }
 .modal-box textarea { width: 100%; height: 200px; margin-bottom: 15px; padding: 12px; font-size: 18px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 10px; resize: none; }
