@@ -7,13 +7,13 @@ import {
   getDocs,
   deleteDoc,
   doc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCtEtTKT_ay0KZoNw6kxiWt_RkI6L2UvKQ",
   authDomain: "postit-wall-7ba23.firebaseapp.com",
   projectId: "postit-wall-7ba23",
-  storageBucket: "postit-wall-7ba23.firebasestorage.app",
+  storageBucket: "postit-wall-7ba23.appspot.com",
   messagingSenderId: "447459662497",
   appId: "1:447459662497:web:73ebd7b62d08ca6f12aee0",
   measurementId: "G-22QZE2KBN3"
@@ -110,6 +110,7 @@ saveBtn.onclick = async () => {
 
 /* 시작 */
 load();
+
 
 
 
