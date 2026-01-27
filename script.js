@@ -15,6 +15,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
 
+// 보드 전체 높이 갱신
 function updateBoardHeight() {
   const board = document.getElementById("board");
   const postits = document.querySelectorAll(".postit");
@@ -26,13 +27,15 @@ function updateBoardHeight() {
   board.style.height = (maxBottom + 300) + "px";
 }
 
-function isOverlapping(newX, newY, newSize, existingPostits) {
+// 다른 포스트잇과 겹치는지 체크
+function isOverlapping(x, y, size, existingPostits) {
+  const margin = 15; // 포스트잇 간 최소 간격
   for (let p of existingPostits) {
     const ex = parseFloat(p.style.left);
     const ey = parseFloat(p.style.top);
     const es = parseFloat(p.style.width);
-    const margin = 10; 
-    if (!(newX + newSize + margin < ex || newX > ex + es + margin || newY + newSize + margin < ey || newY > ey + es + margin)) {
+    // 겹침 판정 로직
+    if (!(x + size < ex - margin || x > ex + es + margin || y + size < ey - margin || y > ey + es + margin)) {
       return true;
     }
   }
@@ -43,16 +46,29 @@ function createPostit(data, id) {
   const board = document.getElementById("board");
   const el = document.createElement("div");
   el.className = "postit";
-  el.style.cssText = `background:${data.color}; font-family:${data.font}; width:${data.size}px; height:${data.size}px; left:${data.x}px; top:${data.y}px; transform:rotate(${data.rotate}deg);`;
+  el.style.cssText = `
+    background: ${data.color};
+    font-family: ${data.font};
+    width: ${data.size}px;
+    height: ${data.size}px;
+    left: ${data.x}px;
+    top: ${data.y}px;
+    transform: rotate(${data.rotate}deg);
+  `;
   el.innerText = data.text;
+  
   const trash = document.createElement("span");
-  trash.className = "trash"; trash.textContent = "🗑️";
+  trash.className = "trash";
+  trash.textContent = "🗑️";
   trash.onclick = async (e) => {
     e.stopPropagation();
-    if (prompt("비밀번호") === data.password || prompt === ADMIN_CODE) {
+    const pw = prompt("비밀번호를 입력하세요.");
+    if (pw === data.password || pw === ADMIN_CODE) {
       await deleteDoc(doc(db, "notes", id));
       el.remove();
       updateBoardHeight();
+    } else {
+      alert("비밀번호가 틀렸습니다.");
     }
   };
   el.appendChild(trash);
@@ -76,47 +92,46 @@ document.addEventListener("DOMContentLoaded", () => {
   saveBtn.onclick = async () => {
     const text = document.getElementById("textInput").value.trim();
     const password = document.getElementById("passwordInput").value;
-    if (!text || password.length !== 4) return alert("입력 오류!");
+    if (!text || password.length !== 4) return alert("글귀와 4자리 비밀번호를 입력하세요!");
 
     const size = 200 + Math.max(0, text.length - 30) * 2.5;
-    const existing = document.querySelectorAll(".postit");
+    const existing = Array.from(document.querySelectorAll(".postit"));
     const winW = window.innerWidth;
-    const winH = window.innerHeight;
+    
+    let finalX, finalY, found = false;
 
-    let x, y, found = false;
-
-    // 핵심 로직: 위쪽(0~화면높이)부터 500번 시도해서 빈틈을 먼저 찾음
-    for (let attempts = 0; attempts < 500; attempts++) {
-      // 처음 400번은 무조건 현재 화면(winH) 내부에서만 찾음
-      // 400번 넘어가면 그제서야 조금씩 아래쪽(boardH)까지 뒤짐
-      const currentBoardH = document.getElementById("board").scrollHeight;
-      const searchLimitY = (attempts < 400) ? winH : currentBoardH;
-
-      x = Math.random() * (winW - size - 40) + 20;
-      y = Math.random() * (searchLimitY - size - 40) + 20;
-
-      if (!isOverlapping(x, y, size, existing)) {
-        found = true;
-        break;
+    // [스캔 로직] 상단(y=20)부터 하단으로 30px씩 내려가며 빈틈을 찾음
+    // 랜덤으로 대충 던지는 게 아니라 위에서부터 빈 구멍을 수색함
+    for (let y = 20; y < document.getElementById("board").scrollHeight + 500; y += 30) {
+      for (let i = 0; i < 20; i++) { // 각 높이에서 20번 랜덤 x좌표 시도
+        let x = Math.random() * (winW - size - 40) + 20;
+        if (!isOverlapping(x, y, size, existing)) {
+          finalX = x;
+          finalY = y;
+          found = true;
+          break;
+        }
       }
-    }
-
-    // 그래도 자리가 없으면 어쩔 수 없이 맨 아래 확장
-    if (!found) {
-      x = Math.random() * (winW - size - 40) + 20;
-      y = document.getElementById("board").scrollHeight + 10;
+      if (found) break;
     }
 
     await addDoc(collection(db, "notes"), {
-      text, color: document.getElementById("colorInput").value,
+      text,
+      color: document.getElementById("colorInput").value,
       font: document.getElementById("fontInput").value,
-      password, size, x, y, 
-      rotate: Math.random() * 14 - 7, createdAt: Date.now()
+      password,
+      size,
+      x: finalX,
+      y: finalY,
+      rotate: Math.random() * 12 - 6,
+      createdAt: Date.now()
     });
 
     modal.style.display = "none";
     document.getElementById("textInput").value = "";
+    document.getElementById("passwordInput").value = "";
     load();
   };
+
   load();
 });
