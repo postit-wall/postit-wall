@@ -69,6 +69,73 @@ function createPostit(data, id) {
   el.innerText = data.text;
   
   const trash = document.createElement("span");
+  trash.className = "trash"; trash.textContent = import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCtEtTKT_ay0KZoNw6kxiWt_RkI6L2UvKQ",
+  authDomain: "postit-wall-7ba23.firebaseapp.com",
+  projectId: "postit-wall-7ba23",
+  storageBucket: "postit-wall-7ba23.appspot.com",
+  messagingSenderId: "447459662497",
+  appId: "1:447459662497:web:73ebd7b62d08ca6f12aee0",
+  measurementId: "G-22QZE2KBN3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const ADMIN_CODE = "87524";
+const SIZE = 160;
+const MARGIN = 15;
+
+// 면적 충돌 감지 (단 1픽셀이라도 겹치면 true)
+function checkCollision(x, y, existingRects) {
+  for (let rect of existingRects) {
+    if (!(x + SIZE + MARGIN < rect.x || x > rect.x + SIZE + MARGIN ||
+          y + SIZE + MARGIN < rect.y || y > rect.y + SIZE + MARGIN)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// 겹치지 않는 빈자리 찾기
+function getNewPosition() {
+  const existingRects = Array.from(document.querySelectorAll('.postit')).map(el => ({
+    x: parseFloat(el.style.left),
+    y: parseFloat(el.style.top)
+  }));
+
+  const winW = window.innerWidth;
+  const boardH = document.getElementById("board").scrollHeight;
+
+  // 위에서 아래로 20px씩 스캔하며 빈자리 찾기
+  for (let y = 20; y < boardH + 1000; y += 20) {
+    for (let x = 20; x < winW - SIZE - 20; x += 20) {
+      if (!checkCollision(x, y, existingRects)) {
+        return { x, y };
+      }
+    }
+  }
+  return { x: 20, y: boardH + 20 };
+}
+
+function renderPostit(data, id) {
+  // 이미 화면에 있는 아이디라면 중복 생성 방지
+  if (document.getElementById(id)) return;
+
+  const board = document.getElementById("board");
+  const el = document.createElement("div");
+  el.className = "postit";
+  el.id = id; // 아이디 부여로 중복 방지 및 위치 고정
+  el.style.left = `${data.x}px`;
+  el.style.top = `${data.y}px`;
+  el.style.backgroundColor = data.color;
+  el.style.fontFamily = data.font;
+  el.style.transform = `rotate(${data.rotate || 0}deg)`;
+  el.innerText = data.text;
+  
+  const trash = document.createElement("span");
   trash.className = "trash"; trash.textContent = "🗑️";
   trash.onclick = async (e) => {
     e.stopPropagation();
@@ -82,9 +149,10 @@ function createPostit(data, id) {
 }
 
 async function load() {
-  document.getElementById("board").innerHTML = "";
-  const snap = await getDocs(collection(db, "notes"));
-  snap.forEach(d => createPostit(d.data(), d.id));
+  // 전체 삭제 후 재생성이 아니라, 새로 추가된 것만 가져오거나 고정된 상태 유지
+  const q = query(collection(db, "notes"), orderBy("createdAt", "asc"));
+  const snap = await getDocs(q);
+  snap.forEach(d => renderPostit(d.data(), d.id));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -97,21 +165,25 @@ document.addEventListener("DOMContentLoaded", () => {
   saveBtn.onclick = async () => {
     const text = document.getElementById("textInput").value.trim();
     const password = document.getElementById("passwordInput").value;
-    if (!text || password.length !== 4) return alert("비밀번호 4자리를 입력하세요!");
+    if (!text || password.length !== 4) return alert("4자리 비밀번호!");
 
-    // 저장 전, 현재 DOM 상태를 기준으로 빈틈을 다시 계산
-    const pos = findSafePosition();
+    const pos = getNewPosition(); // 저장 전 빈 구멍 수색
 
-    await addDoc(collection(db, "notes"), {
+    const docRef = await addDoc(collection(db, "notes"), {
       text, color: document.getElementById("colorInput").value,
       font: document.getElementById("fontInput").value,
       password, x: pos.x, y: pos.y, 
-      rotate: Math.random() * 6 - 3, createdAt: Date.now()
+      rotate: Math.random() * 8 - 4, createdAt: Date.now()
     });
+
+    renderPostit({
+      text, color: document.getElementById("colorInput").value,
+      font: document.getElementById("fontInput").value,
+      password, x: pos.x, y: pos.y, rotate: 0
+    }, docRef.id);
 
     modal.style.display = "none";
     document.getElementById("textInput").value = "";
-    load();
   };
   load();
 });
