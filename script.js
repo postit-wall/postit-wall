@@ -15,7 +15,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
 
-// 보드 전체 높이 갱신
 function updateBoardHeight() {
   const board = document.getElementById("board");
   const postits = document.querySelectorAll(".postit");
@@ -27,14 +26,12 @@ function updateBoardHeight() {
   board.style.height = (maxBottom + 300) + "px";
 }
 
-// 다른 포스트잇과 겹치는지 체크
 function isOverlapping(x, y, size, existingPostits) {
-  const margin = 15; // 포스트잇 간 최소 간격
+  const margin = 10;
   for (let p of existingPostits) {
     const ex = parseFloat(p.style.left);
     const ey = parseFloat(p.style.top);
     const es = parseFloat(p.style.width);
-    // 겹침 판정 로직
     if (!(x + size < ex - margin || x > ex + es + margin || y + size < ey - margin || y > ey + es + margin)) {
       return true;
     }
@@ -46,29 +43,17 @@ function createPostit(data, id) {
   const board = document.getElementById("board");
   const el = document.createElement("div");
   el.className = "postit";
-  el.style.cssText = `
-    background: ${data.color};
-    font-family: ${data.font};
-    width: ${data.size}px;
-    height: ${data.size}px;
-    left: ${data.x}px;
-    top: ${data.y}px;
-    transform: rotate(${data.rotate}deg);
-  `;
+  el.style.cssText = `background:${data.color}; font-family:${data.font}; width:${data.size}px; height:${data.size}px; left:${data.x}px; top:${data.y}px; transform:rotate(${data.rotate}deg);`;
   el.innerText = data.text;
-  
   const trash = document.createElement("span");
-  trash.className = "trash";
-  trash.textContent = "🗑️";
+  trash.className = "trash"; trash.textContent = "🗑️";
   trash.onclick = async (e) => {
     e.stopPropagation();
-    const pw = prompt("비밀번호를 입력하세요.");
+    const pw = prompt("비밀번호");
     if (pw === data.password || pw === ADMIN_CODE) {
       await deleteDoc(doc(db, "notes", id));
       el.remove();
       updateBoardHeight();
-    } else {
-      alert("비밀번호가 틀렸습니다.");
     }
   };
   el.appendChild(trash);
@@ -96,42 +81,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const size = 200 + Math.max(0, text.length - 30) * 2.5;
     const existing = Array.from(document.querySelectorAll(".postit"));
+    
+    // [핵심 변경] 기준 좌표를 '전체 보드'가 아니라 '현재 보이는 화면 높이'로 제한
     const winW = window.innerWidth;
+    const winH = window.innerHeight; 
     
     let finalX, finalY, found = false;
 
-    // [스캔 로직] 상단(y=20)부터 하단으로 30px씩 내려가며 빈틈을 찾음
-    // 랜덤으로 대충 던지는 게 아니라 위에서부터 빈 구멍을 수색함
-    for (let y = 20; y < document.getElementById("board").scrollHeight + 500; y += 30) {
-      for (let i = 0; i < 20; i++) { // 각 높이에서 20번 랜덤 x좌표 시도
+    // 현재 화면 높이(winH) 안에서만 500번 빈틈을 찾아봅니다.
+    for (let attempts = 0; attempts < 500; attempts++) {
+      let x = Math.random() * (winW - size - 40) + 20;
+      let y = Math.random() * (winH - size - 60) + 20; // winH를 넘지 않게 설정
+
+      if (!isOverlapping(x, y, size, existing)) {
+        finalX = x;
+        finalY = y;
+        found = true;
+        break;
+      }
+    }
+
+    // 만약 화면 안에 자리가 정말 없으면 그제서야 아래쪽 빈틈을 찾습니다.
+    if (!found) {
+      const boardH = document.getElementById("board").scrollHeight;
+      for (let attempts = 0; attempts < 300; attempts++) {
         let x = Math.random() * (winW - size - 40) + 20;
+        let y = Math.random() * (boardH + 200); 
         if (!isOverlapping(x, y, size, existing)) {
-          finalX = x;
-          finalY = y;
-          found = true;
-          break;
+          finalX = x; finalY = y; found = true; break;
         }
       }
-      if (found) break;
+    }
+
+    // 그래도 없으면 어쩔 수 없이 맨 아래 추가
+    if (!found) {
+      finalX = Math.random() * (winW - size - 40) + 20;
+      finalY = document.getElementById("board").scrollHeight + 20;
     }
 
     await addDoc(collection(db, "notes"), {
-      text,
-      color: document.getElementById("colorInput").value,
+      text, color: document.getElementById("colorInput").value,
       font: document.getElementById("fontInput").value,
-      password,
-      size,
-      x: finalX,
-      y: finalY,
-      rotate: Math.random() * 12 - 6,
-      createdAt: Date.now()
+      password, size, x: finalX, y: finalY, 
+      rotate: Math.random() * 12 - 6, createdAt: Date.now()
     });
 
     modal.style.display = "none";
     document.getElementById("textInput").value = "";
-    document.getElementById("passwordInput").value = "";
     load();
   };
-
   load();
 });
+  load();
+});
+
