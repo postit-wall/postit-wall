@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCtEtTKT_ay0KZoNw6kxiWt_RkI6L2UvKQ",
@@ -15,105 +15,106 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
 const SIZE = 160;
+const MARGIN = 10; // 포스트잇 간 최소 간격
 
-// 겹침 검사 (오직 저장된 절대 좌표값만 비교)
-function isColliding(x, y) {
-    const postits = document.querySelectorAll('.postit');
-    const margin = 10;
-    
-    for (let p of postits) {
-        const pX = parseFloat(p.style.left);
-        const pY = parseFloat(p.style.top);
-
-        if (!(x + SIZE + margin < pX || 
-              x > pX + SIZE + margin || 
-              y + SIZE + margin < pY || 
-              y > pY + SIZE + margin)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// 빈 공간 찾기 (보드 전체 영역 수색)
-function findSpot() {
-    const winW = window.innerWidth;
-    // 현재 보드의 전체 높이를 기준으로 빈틈 수색
-    const boardH = Math.max(document.getElementById("board").scrollHeight, window.innerHeight);
-    
-    for (let y = 20; y < boardH + 1000; y += 30) {
-        for (let x = 20; x < winW - SIZE - 20; x += 30) {
-            if (!isColliding(x, y)) {
-                return { x, y };
-            }
-        }
-    }
-    return { x: 20, y: 20 };
-}
-
-function render(data, id) {
-    if (document.getElementById(id)) return;
-    
-    const board = document.getElementById("board");
-    const el = document.createElement("div");
-    el.className = "postit";
-    el.id = id;
-    
-    // 절대 좌표 고정 (이 값들은 스크롤해도 변하지 않습니다)
-    el.style.left = `${data.x}px`;
-    el.style.top = `${data.y}px`;
-    el.style.backgroundColor = data.color;
-    el.style.fontFamily = data.font;
-    el.style.transform = `rotate(${data.rotate || 0}deg)`;
-    el.innerText = data.text;
-    
-    const trash = document.createElement("span");
-    trash.className = "trash"; trash.textContent = "🗑️";
-    trash.onclick = async (e) => {
-        e.stopPropagation();
-        if (prompt("비밀번호") === data.password || ADMIN_CODE) {
-            await deleteDoc(doc(db, "notes", id));
-            el.remove();
-        }
+// 현재 화면에 있는 모든 포스트잇의 실제 좌표 정보 가져오기
+function getExistingRects() {
+  return Array.from(document.querySelectorAll('.postit')).map(el => {
+    return {
+      left: parseFloat(el.style.left),
+      top: parseFloat(el.style.top),
+      right: parseFloat(el.style.left) + SIZE,
+      bottom: parseFloat(el.style.top) + SIZE
     };
-    el.appendChild(trash);
-    board.appendChild(el);
+  });
+}
+
+// 특정 좌표가 기존 것들과 겹치는지 체크
+function isOverlapping(x, y, existingRects) {
+  for (let rect of existingRects) {
+    if (!(x + SIZE + MARGIN < rect.left || 
+          x > rect.right + MARGIN || 
+          y + SIZE + MARGIN < rect.top || 
+          y > rect.bottom + MARGIN)) {
+      return true; // 겹침
+    }
+  }
+  return false;
+}
+
+// 빈 공간을 찾을 때까지 화면 전체를 훑는 알고리즘
+function findSmartPosition() {
+  const winW = window.innerWidth;
+  const winH = window.innerHeight;
+  const existingRects = getExistingRects();
+  
+  // 1. 화면 위에서부터 촘촘하게(30px 단위) 검색
+  for (let y = 20; y < winH + 1000; y += 30) {
+    for (let x = 20; x < winW - SIZE - 20; x += 30) {
+      if (!isOverlapping(x, y, existingRects)) {
+        return { x, y };
+      }
+    }
+  }
+  // 자리가 전혀 없으면 맨 아래쪽 새로운 공간 생성
+  return { x: 20, y: document.getElementById("board").scrollHeight + 20 };
+}
+
+function createPostit(data, id) {
+  const board = document.getElementById("board");
+  const el = document.createElement("div");
+  el.className = "postit";
+  el.style.left = `${data.x}px`;
+  el.style.top = `${data.y}px`;
+  el.style.backgroundColor = data.color;
+  el.style.fontFamily = data.font;
+  el.style.transform = `rotate(${data.rotate || 0}deg)`;
+  el.innerText = data.text;
+  
+  const trash = document.createElement("span");
+  trash.className = "trash"; trash.textContent = "🗑️";
+  trash.onclick = async (e) => {
+    e.stopPropagation();
+    if (prompt("비밀번호") === data.password || ADMIN_CODE) {
+      await deleteDoc(doc(db, "notes", id));
+      el.remove();
+    }
+  };
+  el.appendChild(trash);
+  board.appendChild(el);
 }
 
 async function load() {
-    const q = query(collection(db, "notes"), orderBy("createdAt", "asc"));
-    const snap = await getDocs(q);
-    snap.forEach(d => render(d.data(), d.id));
+  document.getElementById("board").innerHTML = "";
+  const snap = await getDocs(collection(db, "notes"));
+  snap.forEach(d => createPostit(d.data(), d.id));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("modal");
-    document.getElementById("addPostitBtn").onclick = () => { modal.style.display = "block"; };
-    modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+  const modal = document.getElementById("modal");
+  const saveBtn = document.getElementById("savePostit");
 
-    document.getElementById("savePostit").onclick = async () => {
-        const text = document.getElementById("textInput").value.trim();
-        const password = document.getElementById("passwordInput").value;
-        if (!text || password.length !== 4) return alert("비밀번호 4자리를 입력하세요!");
+  document.getElementById("addPostitBtn").onclick = () => { modal.style.display = "block"; };
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 
-        const pos = findSpot();
+  saveBtn.onclick = async () => {
+    const text = document.getElementById("textInput").value.trim();
+    const password = document.getElementById("passwordInput").value;
+    if (!text || password.length !== 4) return alert("4자리 비밀번호를 입력하세요!");
 
-        const docRef = await addDoc(collection(db, "notes"), {
-            text, color: document.getElementById("colorInput").value,
-            font: document.getElementById("fontInput").value,
-            password, x: pos.x, y: pos.y, 
-            rotate: Math.random() * 8 - 4, createdAt: Date.now()
-        });
+    // 위치를 먼저 계산한 뒤 저장
+    const pos = findSmartPosition();
 
-        render({
-            text, color: document.getElementById("colorInput").value, 
-            font: document.getElementById("fontInput").value, 
-            password, x: pos.x, y: pos.y,
-            rotate: 0 
-        }, docRef.id);
-        
-        modal.style.display = "none";
-        document.getElementById("textInput").value = "";
-    };
+    await addDoc(collection(db, "notes"), {
+      text, color: document.getElementById("colorInput").value,
+      font: document.getElementById("fontInput").value,
+      password, x: pos.x, y: pos.y, 
+      rotate: Math.random() * 8 - 4, createdAt: Date.now()
+    });
+
+    modal.style.display = "none";
+    document.getElementById("textInput").value = "";
     load();
+  };
+  load();
 });
