@@ -15,6 +15,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
 
+// 화면 높이 업데이트 (가장 아래 포스트잇 기준)
 function updateBoardHeight() {
   const board = document.getElementById("board");
   const postits = document.querySelectorAll(".postit");
@@ -23,15 +24,16 @@ function updateBoardHeight() {
     const bottom = parseFloat(p.style.top) + parseFloat(p.style.height || 200);
     if (bottom > maxBottom) maxBottom = bottom;
   });
-  board.style.height = (maxBottom + 500) + "px";
+  board.style.height = (maxBottom + 300) + "px";
 }
 
+// 겹침 감지 (여유공간 포함)
 function isOverlapping(newX, newY, newSize, existingPostits) {
   for (let p of existingPostits) {
     const ex = parseFloat(p.style.left);
     const ey = parseFloat(p.style.top);
     const es = parseFloat(p.style.width);
-    const margin = 15;
+    const margin = 10; 
     if (!(newX + newSize + margin < ex || newX > ex + es + margin || newY + newSize + margin < ey || newY > ey + es + margin)) {
       return true;
     }
@@ -44,12 +46,9 @@ function createPostit(data, id) {
   const el = document.createElement("div");
   el.className = "postit";
   el.style.cssText = `
-    background: ${data.color};
-    font-family: ${data.font};
-    width: ${data.size}px;
-    height: ${data.size}px;
-    left: ${data.x}px;
-    top: ${data.y}px;
+    background: ${data.color}; font-family: ${data.font};
+    width: ${data.size}px; height: ${data.size}px;
+    left: ${data.x}px; top: ${data.y}px;
     transform: rotate(${data.rotate}deg);
   `;
   el.innerText = data.text;
@@ -63,7 +62,7 @@ function createPostit(data, id) {
       await deleteDoc(doc(db, "notes", id));
       el.remove();
       updateBoardHeight();
-    } else { alert("비밀번호 오류"); }
+    }
   };
   el.appendChild(trash);
   board.appendChild(el);
@@ -86,33 +85,46 @@ document.addEventListener("DOMContentLoaded", () => {
   saveBtn.onclick = async () => {
     const text = document.getElementById("textInput").value.trim();
     const password = document.getElementById("passwordInput").value;
-    if (!text || password.length !== 4) return alert("글과 4자리 비밀번호를 입력하세요!");
+    if (!text || password.length !== 4) return alert("입력 오류!");
 
-    // 글씨가 커졌으므로 포스트잇 기본 사이즈도 약간 키움
-    const size = 200 + Math.max(0, text.length - 30) * 3;
+    const size = 200 + Math.max(0, text.length - 30) * 2.5;
     const existing = document.querySelectorAll(".postit");
-    let x, y, attempts = 0, found = false;
+    const winW = window.innerWidth;
+    const boardH = document.getElementById("board").scrollHeight;
 
-    while (attempts < 200) {
-      const currentH = document.getElementById("board").scrollHeight;
-      x = Math.random() * (window.innerWidth - size - 40) + 20;
-      y = Math.random() * (currentH - size - 40) + 20;
-      if (!isOverlapping(x, y, size, existing)) { found = true; break; }
-      attempts++;
+    let x, y, found = false;
+    
+    // 스마트 공간 찾기: 위쪽 영역부터 우선적으로 빈 자리를 탐색
+    for (let attempts = 0; attempts < 300; attempts++) {
+      // 처음 150번 시도는 현재 보이는 화면 혹은 위쪽 영역 위주로 탐색
+      // 그 이후 시도는 보드 전체 영역으로 확장
+      const searchHeight = (attempts < 150) ? Math.min(boardH, window.innerHeight * 2) : boardH;
+      
+      x = Math.random() * (winW - size - 40) + 20;
+      y = Math.random() * (searchHeight - size - 40) + 20;
+
+      if (!isOverlapping(x, y, size, existing)) {
+        found = true;
+        break;
+      }
     }
-    if (!found) y = document.getElementById("board").scrollHeight + 20;
+
+    // 자리가 정말 없으면 맨 아래로
+    if (!found) {
+      x = Math.random() * (winW - size - 40) + 20;
+      y = boardH + 10;
+    }
 
     await addDoc(collection(db, "notes"), {
       text, color: document.getElementById("colorInput").value,
       font: document.getElementById("fontInput").value,
       password, size, x, y, 
-      rotate: Math.random() * 16 - 8, 
+      rotate: Math.random() * 14 - 7, 
       createdAt: Date.now()
     });
 
     modal.style.display = "none";
     document.getElementById("textInput").value = "";
-    document.getElementById("passwordInput").value = "";
     load();
   };
   load();
