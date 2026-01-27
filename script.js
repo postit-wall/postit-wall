@@ -58,7 +58,7 @@ function createPostit(data, id) {
     e.stopPropagation();
     const pw = prompt("비밀번호 입력");
     if (pw === data.password || pw === ADMIN_CODE) {
-      await deleteDoc(doc(db, "postits", id));
+      await deleteDoc(doc(db, "notes", id));
       el.remove();
     } else {
       alert("비밀번호가 틀렸어요");
@@ -110,6 +110,7 @@ saveBtn.onclick = async () => {
 
 /* 시작 */
 load();
+
 
 
 
