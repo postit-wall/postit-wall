@@ -15,7 +15,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const ADMIN_CODE = "87524";
 
-// 보드 높이를 포스트잇 위치에 맞춰 강제로 늘려주는 함수
+// 
 function updateBoardHeight() {
   const board = document.getElementById("board");
   const postits = document.querySelectorAll(".postit");
@@ -26,20 +26,22 @@ function updateBoardHeight() {
     if (bottom > maxBottom) maxBottom = bottom;
   });
 
-  board.style.height = (maxBottom + 300) + "px"; // 여유 공간 300px
+  board.style.height = (maxBottom + 400) + "px"; // 여유 공간 넉넉히 400px
 }
 
 function createPostit(data, id) {
   const board = document.getElementById("board");
   const el = document.createElement("div");
   el.className = "postit";
-  el.style.background = data.color;
-  el.style.fontFamily = data.font;
-  el.style.width = data.size + "px";
-  el.style.height = data.size + "px";
-  el.style.left = data.x + "px";
-  el.style.top = data.y + "px";
-  el.style.transform = `rotate(${data.rotate}deg)`;
+  el.style.cssText = `
+    background: ${data.color};
+    font-family: ${data.font};
+    width: ${data.size}px;
+    height: ${data.size}px;
+    left: ${data.x}px;
+    top: ${data.y}px;
+    transform: rotate(${data.rotate}deg);
+  `;
   el.innerText = data.text;
 
   const trash = document.createElement("span");
@@ -63,7 +65,7 @@ async function load() {
   board.innerHTML = "";
   const snap = await getDocs(collection(db, "notes"));
   snap.forEach(d => createPostit(d.data(), d.id));
-  updateBoardHeight(); // 데이터 로딩 후 높이 조절
+  updateBoardHeight();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -76,8 +78,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveBtn.onclick = async () => {
     const text = document.getElementById("textInput").value.trim();
-    const color = document.getElementById("colorInput").value;
-    const font = document.getElementById("fontInput").value;
     const password = document.getElementById("passwordInput").value;
 
     if (!text || password.length !== 4) {
@@ -85,12 +85,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const size = 160 + Math.max(0, text.length - 40) * 2;
+    const size = 180 + Math.max(0, text.length - 40) * 2;
     const winW = window.innerWidth;
     const currentBoardHeight = document.getElementById("board").scrollHeight;
 
     await addDoc(collection(db, "notes"), {
-      text, color, font, password, size,
+      text,
+      color: document.getElementById("colorInput").value,
+      font: document.getElementById("fontInput").value,
+      password,
+      size,
       x: Math.random() * (winW - size - 40) + 20,
       y: Math.random() * (currentBoardHeight - size - 40) + 20,
       rotate: Math.random() * 20 - 10,
