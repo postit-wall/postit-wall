@@ -28,7 +28,7 @@ html, body {
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
-/* 모달 및 입력창 크기 */
+/* 모달 설정 */
 #modal {
   display: none;
   position: fixed; inset: 0;
@@ -47,8 +47,7 @@ html, body {
 .modal-box textarea { 
   width: 100%; height: 300px; 
   margin-bottom: 20px; padding: 15px; 
-  font-size: 20px; /* 입력창 글씨도 크게 */
-  box-sizing: border-box; 
+  font-size: 20px; box-sizing: border-box; 
   border: 1px solid #ccc; border-radius: 10px; resize: none;
 }
 
@@ -56,15 +55,15 @@ html, body {
 .controls input, .controls select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
 #savePostit { width: 100%; padding: 18px; background: #333; color: white; border: none; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; }
 
-/* --- 포스트잇 글씨 크기 및 상단 정렬 --- */
+/* 포스트잇 내부 글씨 설정 */
 .postit {
   position: absolute;
   padding: 25px 20px;
   box-shadow: 3px 6px 12px rgba(0,0,0,0.3);
   display: block; 
   text-align: left;
-  line-height: 1.5;
-  font-size: 22px; /* 포스트잇 글씨 크기를 대폭 키움 */
+  line-height: 1.4;
+  font-size: 24px; /* 글씨 크기 확대 */
   font-weight: 500;
   overflow: hidden;
   word-wrap: break-word;
@@ -72,3 +71,6 @@ html, body {
 
 .trash { position: absolute; top: 5px; right: 10px; cursor: pointer; display: none; font-size: 16px; }
 .postit:hover .trash { display: block; }
+.trash { position: absolute; top: 5px; right: 10px; cursor: pointer; display: none; font-size: 16px; }
+.postit:hover .trash { display: block; }
+
