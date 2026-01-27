@@ -10,12 +10,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy.....",
-  authDomain: "postit-wall.firebaseapp.com",
-  projectId: "postit-wall",
-  storageBucket: "postit-wall.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  apiKey: "AIzaSyCtEtTKT_ay0KZoNw6kxiWt_RkI6L2UvKQ",
+  authDomain: "postit-wall-7ba23.firebaseapp.com",
+  projectId: "postit-wall-7ba23",
+  storageBucket: "postit-wall-7ba23.firebasestorage.app",
+  messagingSenderId: "447459662497",
+  appId: "1:447459662497:web:73ebd7b62d08ca6f12aee0",
+  measurementId: "G-22QZE2KBN3"
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -109,5 +110,6 @@ saveBtn.onclick = async () => {
 
 /* 시작 */
 load();
+
 
 
