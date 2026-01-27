@@ -4,26 +4,22 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   font-family: Pretendard, sans-serif;
 }
 
-/* 코르크 배경 */
 #board {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background:
-    url("images/cork.jpg"),
-    #c69c6d;
-  overflow: hidden;
+  /* 배경 이미지가 아래로 계속 반복되도록 설정 */
+  background: url("images/cork.jpg") repeat, #c69c6d;
+  overflow: visible; 
 }
 
-/* 글쓰기 버튼 */
 #addPostitBtn {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: 20px; bottom: 20px;
   z-index: 10;
   padding: 12px 18px;
   border: none;
@@ -33,7 +29,6 @@ html, body {
   cursor: pointer;
 }
 
-/* 포스트잇 */
 .postit {
   position: absolute;
   padding: 14px;
@@ -43,20 +38,14 @@ html, body {
   word-break: break-word;
 }
 
-/* 쓰레기통 */
 .trash {
   position: absolute;
-  top: 4px;
-  right: 6px;
+  top: 4px; right: 6px;
   cursor: pointer;
   display: none;
 }
+.postit:hover .trash { display: block; }
 
-.postit:hover .trash {
-  display: block;
-}
-
-/* 모달 */
 #modal {
   display: none;
   position: fixed;
@@ -67,29 +56,13 @@ html, body {
 
 .modal-box {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   background: white;
   padding: 20px;
   border-radius: 12px;
   width: 320px;
 }
-
-.modal-box textarea {
-  width: 100%;
-  height: 100px;
-}
-
-.controls {
-  display: flex;
-  gap: 6px;
-  margin: 10px 0;
-}
-
-#savePostit {
-  width: 100%;
-  padding: 10px;
-}
-
-
+.modal-box textarea { width: 100%; height: 100px; }
+.controls { display: flex; gap: 6px; margin: 10px 0; }
+#savePostit { width: 100%; padding: 10px; }
