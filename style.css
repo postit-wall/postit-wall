@@ -1,60 +1,49 @@
 @import url("https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap");
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; min-height: 100%;
   background-color: #c69c6d;
-  width: 100%;
-  min-height: 100vh;
 }
 
 #board {
-  position: relative; /* 포스트잇 absolute 배치의 기준점 */
+  position: relative; /* 포스트잇 absolute 위치의 기준점 */
   width: 100%;
-  min-height: 100vh;
+  /* 포스트잇이 늘어남에 따라 배경도 같이 늘어나도록 설정 */
+  min-height: 100vh; 
   background-image: url("images/cork.jpg");
   background-repeat: repeat;
-  background-attachment: scroll; /* 배경이 스크롤과 함께 움직임 */
+  /* 핵심: 배경이 화면에 고정되지 않고 문서와 함께 스크롤됨 */
+  background-attachment: scroll; 
   background-size: auto;
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 .postit {
-  position: absolute;
-  width: 160px;
-  height: 160px;
+  position: absolute; /* 보드의 (0,0) 좌표를 기준으로 고정 */
+  width: 160px; height: 160px;
   padding: 15px;
-  background-color: #fff27d;
-  box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+  box-shadow: 3px 5px 10px rgba(0,0,0,0.3);
   font-family: 'Nanum Pen Script', cursive;
   font-size: 20px;
-  line-height: 1.3;
+  box-sizing: border-box;
   word-break: break-all;
   overflow: hidden;
-  /* 스크롤 시 튕김 방지 */
-  will-change: top, left;
 }
 
 #addPostitBtn {
   position: fixed; right: 20px; bottom: 20px; z-index: 100;
-  padding: 15px 25px; border-radius: 50px; background: #333; color: #fff;
-  border: none; font-weight: bold; cursor: pointer;
+  padding: 15px 25px; border-radius: 50px; background: #333; color: #fff; border: none; cursor: pointer;
 }
 
 #modal {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
 }
-
 .modal-box {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: #fff; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px;
 }
-
-.modal-box textarea { width: 100%; height: 150px; margin-bottom: 10px; padding: 10px; font-size: 16px; }
-
+.modal-box textarea { width: 100%; height: 150px; margin-bottom: 10px; }
 .controls { display: flex; gap: 10px; margin-bottom: 15px; }
-
-#savePostit { width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; }
-
-.trash { position: absolute; top: 5px; right: 5px; cursor: pointer; font-size: 14px; opacity: 0.5; }
-.postit:hover .trash { opacity: 1; }
+#savePostit { width: 100%; padding: 15px; background: #333; color: #fff; border: none; cursor: pointer; }
+.trash { position: absolute; top: 5px; right: 5px; cursor: pointer; font-size: 14px; }
