@@ -33,13 +33,14 @@ function createPostit(data, id) {
   const trash = document.createElement("span");
   trash.className = "trash";
   trash.textContent = "🗑️";
+  trash.style.cssText = "position:absolute; top:5px; right:5px; cursor:pointer;";
   trash.onclick = async (e) => {
     e.stopPropagation();
     const pw = prompt("비밀번호 입력");
     if (pw === data.password || pw === ADMIN_CODE) {
       await deleteDoc(doc(db, "notes", id));
       el.remove();
-    } else { alert("비밀번호가 틀렸어요"); }
+    } else { alert("비밀번호 틀림"); }
   };
   el.appendChild(trash);
   board.appendChild(el);
@@ -58,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("savePostit");
 
   addBtn.onclick = () => { modal.style.display = "block"; };
-  modal.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 
   saveBtn.onclick = async () => {
     const text = document.getElementById("textInput").value.trim();
@@ -67,28 +68,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("passwordInput").value;
 
     if (!text || password.length !== 4) {
-      alert("글과 4자리 비밀번호 필요");
+      alert("글귀와 4자리 비밀번호를 입력하세요.");
       return;
     }
 
     const size = 160 + Math.max(0, text.length - 40) * 2;
-    const allPostits = document.querySelectorAll(".postit");
     
-    let currentMaxY = window.innerHeight; // 기본 화면 높이
+    // 현재 화면 너비
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
 
-    // 현재 붙어있는 포스트잇들 중 가장 아래쪽 좌표 찾기
-    allPostits.forEach(p => {
-      const bottom = parseFloat(p.style.top) + size;
-      if (bottom > currentMaxY) currentMaxY = bottom;
+    // 현재 모든 포스트잇 중 가장 아래에 있는 놈의 위치 확인
+    const all = document.querySelectorAll(".postit");
+    let currentMaxBottom = winH; 
+    
+    all.forEach(p => {
+      const b = parseFloat(p.style.top) + size;
+      if (b > currentMaxBottom) currentMaxBottom = b;
     });
 
-    // 화면 하단에 여유가 200px 미만이면 아래로 영역 확장
-    const spawnYLimit = currentMaxY;
+    // 배치 로직: 화면 하단에 100px 정도 여유가 없으면 영역을 500px 더 확장해서 배치
+    const rangeY = (currentMaxBottom + size > winH) ? currentMaxBottom + 500 : winH;
 
     await addDoc(collection(db, "notes"), {
       text, color, font, password, size,
-      x: rand(20, window.innerWidth - size - 20),
-      y: rand(20, spawnYLimit - size - 20), // 위에서 찾은 한계점 내에서 랜덤 배치
+      x: rand(20, winW - size - 20),
+      y: rand(20, rangeY - size - 20),
       rotate: rand(-10, 10),
       createdAt: Date.now()
     });
