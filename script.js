@@ -1,0 +1,112 @@
+/* Firebase */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "여기에_API_KEY",
+  authDomain: "여기에_AUTH_DOMAIN",
+  projectId: "여기에_PROJECT_ID",
+  storageBucket: "여기에_STORAGE",
+  messagingSenderId: "여기에_SENDER_ID",
+  appId: "여기에_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* DOM */
+const board = document.getElementById("board");
+const modal = document.getElementById("modal");
+const addBtn = document.getElementById("addPostitBtn");
+const saveBtn = document.getElementById("savePostit");
+
+const ADMIN_CODE = "87524";
+
+/* 유틸 */
+const rand = (min, max) => Math.random() * (max - min) + min;
+
+/* 모달 열기 */
+addBtn.onclick = () => modal.style.display = "block";
+modal.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
+
+/* 포스트잇 생성 */
+function createPostit(data, id) {
+  const el = document.createElement("div");
+  el.className = "postit";
+  el.style.background = data.color;
+  el.style.fontFamily = data.font;
+  el.style.width = data.size + "px";
+  el.style.height = data.size + "px";
+  el.style.left = data.x + "px";
+  el.style.top = data.y + "px";
+  el.style.transform = `rotate(${data.rotate}deg)`;
+  el.innerText = data.text;
+
+  const trash = document.createElement("span");
+  trash.className = "trash";
+  trash.textContent = "🗑️";
+  el.appendChild(trash);
+
+  trash.onclick = async (e) => {
+    e.stopPropagation();
+    const pw = prompt("비밀번호 입력");
+    if (pw === data.password || pw === ADMIN_CODE) {
+      await deleteDoc(doc(db, "postits", id));
+      el.remove();
+    } else {
+      alert("비밀번호가 틀렸어요");
+    }
+  };
+
+  board.appendChild(el);
+}
+
+/* 불러오기 */
+async function load() {
+  board.innerHTML = "";
+  const snap = await getDocs(collection(db, "postits"));
+  snap.forEach(d => createPostit(d.data(), d.id));
+}
+
+/* 저장 */
+saveBtn.onclick = async () => {
+  const text = document.getElementById("textInput").value.trim();
+  const color = document.getElementById("colorInput").value;
+  const font = document.getElementById("fontInput").value;
+  const password = document.getElementById("passwordInput").value;
+
+  if (!text || password.length !== 4) {
+    alert("글과 4자리 비밀번호 필요");
+    return;
+  }
+
+  const size = 160 + Math.max(0, text.length - 40) * 2;
+  const rect = board.getBoundingClientRect();
+
+  await addDoc(collection(db, "postits"), {
+    text,
+    color,
+    font,
+    password,
+    size,
+    x: rand(20, rect.width - size - 20),
+    y: rand(20, rect.height - size - 20),
+    rotate: rand(-10, 10),
+    createdAt: Date.now()
+  });
+
+  modal.style.display = "none";
+  document.getElementById("textInput").value = "";
+  document.getElementById("passwordInput").value = "";
+  load();
+};
+
+/* 시작 */
+load();

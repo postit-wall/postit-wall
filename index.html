@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Post-it Wall</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 코르크 보드 -->
+  <div id="board"></div>
+
+  <!-- 글쓰기 버튼 -->
+  <button id="addPostitBtn">✏️ 글귀 적기</button>
+
+  <!-- 모달 -->
+  <div id="modal">
+    <div class="modal-box">
+      <textarea id="textInput" placeholder="글귀를 적어주세요"></textarea>
+
+      <div class="controls">
+        <input type="color" id="colorInput" value="#fff59d" />
+
+        <select id="fontInput">
+          <option value="Pretendard">Pretendard</option>
+          <option value="Nanum Pen Script">Nanum Pen</option>
+          <option value="serif">Serif</option>
+        </select>
+
+        <input
+          type="password"
+          id="passwordInput"
+          placeholder="4자리 비밀번호"
+          maxlength="4"
+        />
+      </div>
+
+      <button id="savePostit">붙이기</button>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
