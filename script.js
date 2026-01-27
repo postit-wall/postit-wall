@@ -1,5 +1,5 @@
 /* Firebase */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp } from "firebase/app";
 import {
   getFirestore,
   collection,
@@ -110,6 +110,7 @@ saveBtn.onclick = async () => {
 
 /* 시작 */
 load();
+
 
 
 
