@@ -1,120 +1,68 @@
-/* Firebase - 반드시 전체 URL(https://...)을 사용해야 에러가 나지 않습니다 */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc
-} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+@import url("https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap");
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCtEtTKT_ay0KZoNw6kxiWt_RkI6L2UvKQ",
-  authDomain: "postit-wall-7ba23.firebaseapp.com",
-  projectId: "postit-wall-7ba23",
-  storageBucket: "postit-wall-7ba23.appspot.com",
-  messagingSenderId: "447459662497",
-  appId: "1:447459662497:web:73ebd7b62d08ca6f12aee0",
-  measurementId: "G-22QZE2KBN3"
-};
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: Pretendard, sans-serif;
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const ADMIN_CODE = "87524";
+#board {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  /* 배경 이미지가 아래로 계속 반복되도록 설정 */
+  background: url("images/cork.jpg") repeat, #c69c6d;
+  overflow: visible; 
+}
 
-/* DOM 요소 - DOMContentLoaded 이후에 안전하게 가져오기 위해 함수 내부에 배치하거나 리스너 사용 */
-document.addEventListener("DOMContentLoaded", () => {
-  const board = document.getElementById("board");
-  const modal = document.getElementById("modal");
-  const addBtn = document.getElementById("addPostitBtn");
-  const saveBtn = document.getElementById("savePostit");
+#addPostitBtn {
+  position: fixed;
+  right: 20px; bottom: 20px;
+  z-index: 10;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 30px;
+  background: #333;
+  color: white;
+  cursor: pointer;
+}
 
-  /* 유틸 */
-  const rand = (min, max) => Math.random() * (max - min) + min;
+.postit {
+  position: absolute;
+  padding: 14px;
+  box-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 
-  /* 모달 열기/닫기 */
-  if (addBtn) {
-    addBtn.onclick = () => {
-      modal.style.display = "block";
-    };
-  }
+.trash {
+  position: absolute;
+  top: 4px; right: 6px;
+  cursor: pointer;
+  display: none;
+}
+.postit:hover .trash { display: block; }
 
-  if (modal) {
-    modal.onclick = (e) => {
-      if (e.target === modal) modal.style.display = "none";
-    };
-  }
+#modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 20;
+}
 
-  /* 포스트잇 생성 함수 */
-  function createPostit(data, id) {
-    const el = document.createElement("div");
-    el.className = "postit";
-    el.style.background = data.color;
-    el.style.fontFamily = data.font;
-    el.style.width = data.size + "px";
-    el.style.height = data.size + "px";
-    el.style.left = data.x + "px";
-    el.style.top = data.y + "px";
-    el.style.transform = `rotate(${data.rotate}deg)`;
-    el.innerText = data.text;
-
-    const trash = document.createElement("span");
-    trash.className = "trash";
-    trash.textContent = "🗑️";
-    el.appendChild(trash);
-
-    trash.onclick = async (e) => {
-      e.stopPropagation();
-      const pw = prompt("비밀번호 입력");
-      if (pw === data.password || pw === ADMIN_CODE) {
-        await deleteDoc(doc(db, "notes", id)); // 컬렉션 명 "notes"로 통일
-        el.remove();
-      } else {
-        alert("비밀번호가 틀렸어요");
-      }
-    };
-    board.appendChild(el);
-  }
-
-  /* 불러오기 */
-  async function load() {
-    board.innerHTML = "";
-    const snap = await getDocs(collection(db, "notes"));
-    snap.forEach(d => createPostit(d.data(), d.id));
-  }
-
-  /* 저장 버튼 클릭 */
-  if (saveBtn) {
-    saveBtn.onclick = async () => {
-      const text = document.getElementById("textInput").value.trim();
-      const color = document.getElementById("colorInput").value;
-      const font = document.getElementById("fontInput").value;
-      const password = document.getElementById("passwordInput").value;
-
-      if (!text || password.length !== 4) {
-        alert("글과 4자리 비밀번호 필요");
-        return;
-      }
-
-      const size = 160 + Math.max(0, text.length - 40) * 2;
-      const rect = board.getBoundingClientRect();
-
-      await addDoc(collection(db, "notes"), {
-        text, color, font, password, size,
-        x: rand(20, rect.width - size - 20),
-        y: rand(20, rect.height - size - 20),
-        rotate: rand(-10, 10),
-        createdAt: Date.now()
-      });
-
-      modal.style.display = "none";
-      document.getElementById("textInput").value = "";
-      document.getElementById("passwordInput").value = "";
-      load();
-    };
-  }
-
-  /* 최초 실행 */
-  load();
-});
+.modal-box {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+}
+.modal-box textarea { width: 100%; height: 100px; }
+.controls { display: flex; gap: 6px; margin: 10px 0; }
+#savePostit { width: 100%; padding: 10px; }
