@@ -2,25 +2,24 @@
 
 html, body {
   margin: 0; padding: 0;
-  width: 100%; min-height: 100%;
+  width: 100%; height: 100%;
   background-color: #c69c6d;
 }
 
 #board {
-  position: relative; /* 포스트잇 absolute 위치의 기준점 */
-  width: 100%;
-  /* 포스트잇이 늘어남에 따라 배경도 같이 늘어나도록 설정 */
-  min-height: 100vh; 
+  position: relative;
+  /* 초기 크기는 화면 전체, 하지만 내용에 따라 무한히 늘어남 */
+  min-width: 100vw;
+  min-height: 100vh;
   background-image: url("images/cork.jpg");
-  background-repeat: repeat;
-  /* 핵심: 배경이 화면에 고정되지 않고 문서와 함께 스크롤됨 */
-  background-attachment: scroll; 
+  background-repeat: repeat; /* 이미지가 가로 세로로 무한 반복됨 */
+  background-attachment: scroll; /* 스크롤 시 배경도 함께 이동 */
   background-size: auto;
-  overflow: visible;
+  overflow: visible; /* 포스트잇이 경계를 넘어가면 보드가 늘어남 */
 }
 
 .postit {
-  position: absolute; /* 보드의 (0,0) 좌표를 기준으로 고정 */
+  position: absolute;
   width: 160px; height: 160px;
   padding: 15px;
   box-shadow: 3px 5px 10px rgba(0,0,0,0.3);
@@ -31,19 +30,7 @@ html, body {
   overflow: hidden;
 }
 
-#addPostitBtn {
-  position: fixed; right: 20px; bottom: 20px; z-index: 100;
-  padding: 15px 25px; border-radius: 50px; background: #333; color: #fff; border: none; cursor: pointer;
-}
-
-#modal {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
-}
-.modal-box {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  background: #fff; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px;
-}
-.modal-box textarea { width: 100%; height: 150px; margin-bottom: 10px; }
-.controls { display: flex; gap: 10px; margin-bottom: 15px; }
-#savePostit { width: 100%; padding: 15px; background: #333; color: #fff; border: none; cursor: pointer; }
-.trash { position: absolute; top: 5px; right: 5px; cursor: pointer; font-size: 14px; }
+/* 버튼 및 모달 스타일 (기본 유지) */
+#addPostitBtn { position: fixed; right: 20px; bottom: 20px; z-index: 100; padding: 15px 25px; border-radius: 50px; background: #333; color: #fff; border: none; cursor: pointer; }
+#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; }
+.modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; }
