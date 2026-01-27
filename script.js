@@ -26,12 +26,17 @@ function updateBoardHeight() {
   board.style.height = (maxBottom + 300) + "px";
 }
 
-function isOverlapping(x, y, size, existingPostits) {
-  const margin = 10;
+// 중요: '현재 화면에 보이는 포스트잇' 하고만 겹치는지 체크
+function isOverlappingInView(x, y, size, existingPostits, viewLimit) {
+  const margin = 5;
   for (let p of existingPostits) {
     const ex = parseFloat(p.style.left);
     const ey = parseFloat(p.style.top);
     const es = parseFloat(p.style.width);
+    
+    // 화면 밖(viewLimit 아래)에 있는 포스트잇은 계산에서 아예 제외!
+    if (ey > viewLimit) continue;
+
     if (!(x + size < ex - margin || x > ex + es + margin || y + size < ey - margin || y > ey + es + margin)) {
       return true;
     }
@@ -77,23 +82,21 @@ document.addEventListener("DOMContentLoaded", () => {
   saveBtn.onclick = async () => {
     const text = document.getElementById("textInput").value.trim();
     const password = document.getElementById("passwordInput").value;
-    if (!text || password.length !== 4) return alert("글귀와 4자리 비밀번호를 입력하세요!");
+    if (!text || password.length !== 4) return alert("입력 오류!");
 
     const size = 200 + Math.max(0, text.length - 30) * 2.5;
     const existing = Array.from(document.querySelectorAll(".postit"));
-    
-    // [핵심 변경] 기준 좌표를 '전체 보드'가 아니라 '현재 보이는 화면 높이'로 제한
     const winW = window.innerWidth;
-    const winH = window.innerHeight; 
+    const winH = window.innerHeight; // 딱 현재 화면 높이
     
     let finalX, finalY, found = false;
 
-    // 현재 화면 높이(winH) 안에서만 500번 빈틈을 찾아봅니다.
-    for (let attempts = 0; attempts < 500; attempts++) {
+    // 1000번 동안 오직 현재 '화면 안'에만 랜덤으로 던져봅니다.
+    for (let attempts = 0; attempts < 1000; attempts++) {
       let x = Math.random() * (winW - size - 40) + 20;
-      let y = Math.random() * (winH - size - 60) + 20; // winH를 넘지 않게 설정
+      let y = Math.random() * (winH - size - 100) + 20; // 무조건 화면 안에 가두기
 
-      if (!isOverlapping(x, y, size, existing)) {
+      if (!isOverlappingInView(x, y, size, existing, winH)) {
         finalX = x;
         finalY = y;
         found = true;
@@ -101,22 +104,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // 만약 화면 안에 자리가 정말 없으면 그제서야 아래쪽 빈틈을 찾습니다.
-    if (!found) {
-      const boardH = document.getElementById("board").scrollHeight;
-      for (let attempts = 0; attempts < 300; attempts++) {
-        let x = Math.random() * (winW - size - 40) + 20;
-        let y = Math.random() * (boardH + 200); 
-        if (!isOverlapping(x, y, size, existing)) {
-          finalX = x; finalY = y; found = true; break;
-        }
-      }
-    }
-
-    // 그래도 없으면 어쩔 수 없이 맨 아래 추가
+    // 화면이 꽉 차서 정 자리가 없으면? 겹치더라도 그냥 화면 안에 랜덤하게 둡니다.
+    // (이래야 아래로 안 내려갑니다.)
     if (!found) {
       finalX = Math.random() * (winW - size - 40) + 20;
-      finalY = document.getElementById("board").scrollHeight + 20;
+      finalY = Math.random() * (winH - size - 100) + 20;
     }
 
     await addDoc(collection(db, "notes"), {
@@ -132,6 +124,3 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   load();
 });
-  load();
-});
-
