@@ -3,22 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>우리들의 포스트잇</title>
+    <title>포스트잇 게시판</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="board"></div>
+    <div id="board">
+        </div>
 
-    <button id="addPostitBtn">글남기기</button>
+    <button id="addPostitBtn">+ 새 글 남기기</button>
 
     <div id="modal">
         <div class="modal-box">
-            <textarea id="textInput" placeholder="내용을 적어주세요..."></textarea>
+            <textarea id="textInput" placeholder="내용을 입력하세요..."></textarea>
             <div class="controls">
                 <input type="color" id="colorInput" value="#fff27d">
+                <select id="fontInput">
+                    <option value="'Nanum Pen Script', cursive">나눔펜체</option>
+                    <option value="'Pretendard', -apple-system, sans-serif">기본 고딕체</option>
+                    <option value="'Courier New', monospace">타자기체</option>
+                </select>
                 <input type="password" id="passwordInput" placeholder="비번 4자리" maxlength="4">
             </div>
-            <button id="savePostit">게시판에 붙이기</button>
+            <button id="savePostit">게시하기</button>
         </div>
     </div>
 
